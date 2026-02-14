@@ -74,7 +74,7 @@ onMounted(loadLogs);
           <label class="text-caption text-muted-foreground">서비스 필터</label>
           <select
             v-model="selectedServiceSlug"
-            class="retro-input min-w-[220px]"
+            class="retro-input w-auto min-w-[220px]"
           >
             <option value="">전체 서비스</option>
             <option v-for="service in services" :key="service.id" :value="service.slug">
