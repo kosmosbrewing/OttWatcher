@@ -36,11 +36,11 @@ async function loadLogs() {
   error.value = "";
 
   try {
-    const [servicesData, logsData] = await Promise.all([
+    const [, logsData] = await Promise.all([
       loadServices(),
       fetchChangelog(selectedServiceSlug.value),
     ]);
-    if (servicesData && services.value.length > 0 && !selectedServiceSlug.value) {
+    if (services.value.length > 0 && !selectedServiceSlug.value) {
       selectedServiceSlug.value = "";
     }
     updates.value = logsData.updates || [];

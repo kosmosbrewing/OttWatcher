@@ -1,7 +1,6 @@
-/* Critical CSS는 index.html에 inline으로 이동 (LCP 최적화) */
-/* - @font-face (Pretendard)
- * - :root CSS 변수
- * - body 기본 스타일
+/* Critical CSS는 index.html에 inline으로 이동 */
+/* - :root CSS 변수
+ * - body 기본 스타일/배경
  */
 
 @tailwind base;

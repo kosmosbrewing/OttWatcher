@@ -20,7 +20,7 @@ module.exports = {
     extend: {
       // Pretendard 폰트 (샤키샤키 패턴 재활용)
       fontFamily: {
-        sans: ["Pretendard", ...fontFamily.sans],
+        sans: ["Nanum Gothic Coding", "D2Coding", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", ...fontFamily.sans],
       },
 
       // 5단계 폰트 계층 (샤키샤키 동일)
