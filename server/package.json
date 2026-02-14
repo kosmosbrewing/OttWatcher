@@ -1,0 +1,21 @@
+{
+  "name": "ott-price-compare-server",
+  "version": "1.0.0",
+  "description": "OTT 가격 비교 API 서버",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "zod": "^4.3.6"
+  }
+}

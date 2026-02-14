@@ -1,0 +1,8 @@
+{
+  "asia": { "name": "아시아", "nameEn": "Asia" },
+  "europe": { "name": "유럽", "nameEn": "Europe" },
+  "north-america": { "name": "북미", "nameEn": "North America" },
+  "south-america": { "name": "남미", "nameEn": "South America" },
+  "africa": { "name": "아프리카", "nameEn": "Africa" },
+  "oceania": { "name": "오세아니아", "nameEn": "Oceania" }
+}

@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "6002:6002"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - PORT=6002
+    restart: unless-stopped

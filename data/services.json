@@ -1,0 +1,60 @@
+{
+  "services": [
+    {
+      "id": "youtube-premium",
+      "name": "YouTube Premium",
+      "slug": "youtube-premium",
+      "logo": "/images/logos/youtube-premium.svg",
+      "color": "#FF0000",
+      "plans": [
+        { "id": "individual", "name": "개인", "nameEn": "Individual" },
+        { "id": "family", "name": "가족", "nameEn": "Family" },
+        { "id": "student", "name": "학생", "nameEn": "Student" }
+      ],
+      "dataFile": "youtube-premium.json",
+      "active": true
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "slug": "netflix",
+      "logo": "/images/logos/netflix.svg",
+      "color": "#E50914",
+      "plans": [
+        { "id": "ad-supported", "name": "광고형", "nameEn": "Standard with Ads" },
+        { "id": "standard", "name": "스탠다드", "nameEn": "Standard" },
+        { "id": "premium", "name": "프리미엄", "nameEn": "Premium" }
+      ],
+      "dataFile": "netflix.json",
+      "active": false
+    },
+    {
+      "id": "disney-plus",
+      "name": "Disney+",
+      "slug": "disney-plus",
+      "logo": "/images/logos/disney-plus.svg",
+      "color": "#113CCF",
+      "plans": [
+        { "id": "standard", "name": "스탠다드", "nameEn": "Standard" },
+        { "id": "premium", "name": "프리미엄", "nameEn": "Premium" }
+      ],
+      "dataFile": "disney-plus.json",
+      "active": false
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "slug": "spotify",
+      "logo": "/images/logos/spotify.svg",
+      "color": "#1DB954",
+      "plans": [
+        { "id": "individual", "name": "개인", "nameEn": "Individual" },
+        { "id": "duo", "name": "듀오", "nameEn": "Duo" },
+        { "id": "family", "name": "가족", "nameEn": "Family" },
+        { "id": "student", "name": "학생", "nameEn": "Student" }
+      ],
+      "dataFile": "spotify.json",
+      "active": false
+    }
+  ]
+}

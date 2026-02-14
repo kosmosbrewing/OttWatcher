@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTT 가격 비교 | 국가별 구독 요금 한눈에</title>
+    <meta name="description" content="유튜브 프리미엄, 넷플릭스 등 OTT 서비스의 국가별 구독 요금을 비교하세요. 가장 저렴한 나라를 찾아드립니다." />
+
+    <!-- OG 태그 -->
+    <meta property="og:title" content="OTT 가격 비교 | 국가별 구독 요금 한눈에" />
+    <meta property="og:description" content="유튜브 프리미엄, 넷플릭스 등 OTT 서비스의 국가별 구독 요금을 비교하세요." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+
+    <!-- Critical CSS: LCP 최적화 (폰트 + CSS 변수 + 기본 스타일) -->
+    <style>
+      /* 레트로 커뮤니티 스타일 색상 체계 (네이비 + 오렌지 + 크림) */
+      :root {
+        --background: 44 44% 94%;
+        --foreground: 222 42% 16%;
+        --muted: 40 32% 88%;
+        --muted-foreground: 223 16% 38%;
+        --card: 42 50% 98%;
+        --card-foreground: 223 42% 16%;
+        --primary: 23 92% 52%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 220 35% 89%;
+        --secondary-foreground: 223 42% 16%;
+        --accent: 214 70% 90%;
+        --accent-foreground: 223 42% 16%;
+        --popover: 42 50% 98%;
+        --popover-foreground: 223 42% 16%;
+        --destructive: 0 76% 55%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 223 22% 32%;
+        --input: 223 24% 72%;
+        --ring: 23 92% 52%;
+        --radius: 0.15rem;
+        --savings: 142 62% 34%;
+        --savings-foreground: 0 0% 100%;
+      }
+
+      html { scroll-behavior: auto; }
+      body {
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: "Nanum Gothic Coding", "D2Coding", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+        margin: 0;
+        background-image:
+          linear-gradient(0deg, rgba(21, 35, 63, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(21, 35, 63, 0.04) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

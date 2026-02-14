@@ -1,0 +1,255 @@
+{
+  "serviceId": "youtube-premium",
+  "snapshots": [
+    {
+      "date": "2026-01-29",
+      "prices": [
+        {
+          "countryCode": "KR",
+          "krw": 13410
+        },
+        {
+          "countryCode": "TR",
+          "krw": 2949
+        },
+        {
+          "countryCode": "IN",
+          "krw": 2356
+        },
+        {
+          "countryCode": "AR",
+          "krw": 5115
+        },
+        {
+          "countryCode": "BR",
+          "krw": 6070
+        },
+        {
+          "countryCode": "US",
+          "krw": 20359
+        },
+        {
+          "countryCode": "JP",
+          "krw": 12436
+        },
+        {
+          "countryCode": "GB",
+          "krw": 24886
+        },
+        {
+          "countryCode": "DE",
+          "krw": 21786
+        },
+        {
+          "countryCode": "CA",
+          "krw": 15270
+        },
+        {
+          "countryCode": "AU",
+          "krw": 17108
+        },
+        {
+          "countryCode": "PH",
+          "krw": 5379
+        },
+        {
+          "countryCode": "ID",
+          "krw": 8155
+        },
+        {
+          "countryCode": "TH",
+          "krw": 9397
+        },
+        {
+          "countryCode": "VN",
+          "krw": 4345
+        },
+        {
+          "countryCode": "MX",
+          "krw": 12452
+        },
+        {
+          "countryCode": "EG",
+          "krw": 3451
+        },
+        {
+          "countryCode": "NG",
+          "krw": 2776
+        },
+        {
+          "countryCode": "ZA",
+          "krw": 9047
+        },
+        {
+          "countryCode": "PL",
+          "krw": 10283
+        },
+        {
+          "countryCode": "UA",
+          "krw": 3750
+        },
+        {
+          "countryCode": "SG",
+          "krw": 14203
+        },
+        {
+          "countryCode": "HK",
+          "krw": 13114
+        },
+        {
+          "countryCode": "TW",
+          "krw": 8197
+        },
+        {
+          "countryCode": "MY",
+          "krw": 7346
+        },
+        {
+          "countryCode": "CL",
+          "krw": 9220
+        },
+        {
+          "countryCode": "CO",
+          "krw": 8116
+        },
+        {
+          "countryCode": "CH",
+          "krw": 25710
+        },
+        {
+          "countryCode": "SE",
+          "krw": 17653
+        },
+        {
+          "countryCode": "NZ",
+          "krw": 15646
+        }
+      ]
+    },
+    {
+      "date": "2026-02-05",
+      "prices": [
+        {
+          "countryCode": "KR",
+          "krw": 14185
+        },
+        {
+          "countryCode": "TR",
+          "krw": 3090
+        },
+        {
+          "countryCode": "IN",
+          "krw": 2446
+        },
+        {
+          "countryCode": "AR",
+          "krw": 5264
+        },
+        {
+          "countryCode": "BR",
+          "krw": 6194
+        },
+        {
+          "countryCode": "US",
+          "krw": 20603
+        },
+        {
+          "countryCode": "JP",
+          "krw": 12485
+        },
+        {
+          "countryCode": "GB",
+          "krw": 24790
+        },
+        {
+          "countryCode": "DE",
+          "krw": 21540
+        },
+        {
+          "countryCode": "CA",
+          "krw": 13460
+        },
+        {
+          "countryCode": "AU",
+          "krw": 14993
+        },
+        {
+          "countryCode": "PH",
+          "krw": 5834
+        },
+        {
+          "countryCode": "ID",
+          "krw": 8758
+        },
+        {
+          "countryCode": "TH",
+          "krw": 9997
+        },
+        {
+          "countryCode": "VN",
+          "krw": 4580
+        },
+        {
+          "countryCode": "MX",
+          "krw": 13011
+        },
+        {
+          "countryCode": "EG",
+          "krw": 3575
+        },
+        {
+          "countryCode": "NG",
+          "krw": 2853
+        },
+        {
+          "countryCode": "ZA",
+          "krw": 8281
+        },
+        {
+          "countryCode": "PL",
+          "krw": 9352
+        },
+        {
+          "countryCode": "UA",
+          "krw": 3389
+        },
+        {
+          "countryCode": "SG",
+          "krw": 12757
+        },
+        {
+          "countryCode": "HK",
+          "krw": 14571
+        },
+        {
+          "countryCode": "TW",
+          "krw": 9017
+        },
+        {
+          "countryCode": "MY",
+          "krw": 8003
+        },
+        {
+          "countryCode": "CL",
+          "krw": 9950
+        },
+        {
+          "countryCode": "CO",
+          "krw": 8680
+        },
+        {
+          "countryCode": "CH",
+          "krw": 24476
+        },
+        {
+          "countryCode": "SE",
+          "krw": 16684
+        },
+        {
+          "countryCode": "NZ",
+          "krw": 14683
+        }
+      ]
+    }
+  ]
+}
