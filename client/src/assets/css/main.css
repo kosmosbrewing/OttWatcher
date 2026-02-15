@@ -17,44 +17,49 @@
 }
 
 @layer components {
+  .retro-panel-content {
+    @apply px-4 py-3 sm:px-5 sm:py-4;
+  }
+
   .retro-panel {
-    @apply border-2 border-border bg-card shadow-[3px_3px_0px_0px_hsl(var(--border))];
+    @apply rounded-none border-0 bg-card shadow-none;
   }
 
   .retro-panel-muted {
-    @apply border-2 border-border bg-muted shadow-[2px_2px_0px_0px_hsl(var(--border))];
+    @apply rounded-none border-0 bg-card shadow-none;
   }
 
   .retro-titlebar {
-    @apply flex items-center justify-between gap-3 border-b-2 border-border bg-primary/95 px-3 py-2 text-primary-foreground;
+    @apply flex items-center justify-between gap-3 border-b border-border/60 bg-transparent px-4 py-2.5 sm:px-5 sm:py-3 text-foreground;
   }
 
   .retro-title {
-    @apply text-caption font-bold uppercase tracking-wider;
+    @apply text-caption font-semibold tracking-normal;
+    font-family: "BMEuljiro10yearslater", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   }
 
   .retro-kbd {
-    @apply inline-flex items-center rounded-sm border border-primary-foreground/40 bg-primary-foreground/15 px-2 py-0.5 text-tiny font-semibold;
+    @apply inline-flex items-center rounded border border-border/70 bg-transparent px-2 py-0.5 text-tiny font-medium text-muted-foreground;
   }
 
   .retro-link {
-    @apply text-primary hover:underline underline-offset-2 font-semibold;
+    @apply font-semibold text-primary hover:text-primary/80 hover:underline underline-offset-2;
   }
 
   .retro-input {
-    @apply w-full rounded-sm border-2 border-border bg-background px-3 py-2 text-body placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring;
+    @apply w-full rounded-none border-0 border-b border-input bg-transparent px-0 py-2 text-body placeholder:text-muted-foreground focus:outline-none focus:ring-0 focus:border-ring;
   }
 
   .retro-button {
-    @apply inline-flex items-center justify-center rounded-sm border-2 border-border bg-primary px-4 py-2 text-body font-semibold text-primary-foreground shadow-[2px_2px_0px_0px_hsl(var(--border))] transition-transform hover:-translate-y-0.5;
+    @apply inline-flex items-center justify-center rounded border border-primary bg-primary px-4 py-2 text-body font-semibold text-primary-foreground transition-colors hover:bg-primary/90;
   }
 
   .retro-button-subtle {
-    @apply inline-flex items-center justify-center rounded-sm border-2 border-border bg-background px-3 py-2 text-caption font-semibold text-foreground shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:bg-accent;
+    @apply inline-flex items-center justify-center rounded-none border-0 bg-transparent px-1 py-1 text-caption font-medium text-foreground hover:text-primary hover:underline underline-offset-2;
   }
 
   .retro-chip {
-    @apply inline-flex items-center rounded-sm border border-border bg-background px-2 py-0.5 text-tiny font-semibold;
+    @apply inline-flex items-center text-caption font-medium text-muted-foreground;
   }
 
   .retro-stat-grid {
@@ -74,10 +79,11 @@
   }
 
   .retro-board-list {
-    @apply divide-y-2 divide-border border-y-2 border-border bg-card;
+    @apply overflow-hidden divide-y divide-border;
   }
 
   .retro-board-item {
-    @apply flex items-center justify-between gap-3 px-3 py-2 text-caption hover:bg-accent/50;
+    @apply flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5 sm:py-3.5 text-caption hover:bg-accent/20;
   }
+
 }

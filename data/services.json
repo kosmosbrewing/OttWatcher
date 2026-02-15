@@ -21,12 +21,12 @@
       "logo": "/images/logos/netflix.svg",
       "color": "#E50914",
       "plans": [
-        { "id": "ad-supported", "name": "광고형", "nameEn": "Standard with Ads" },
-        { "id": "standard", "name": "스탠다드", "nameEn": "Standard" },
-        { "id": "premium", "name": "프리미엄", "nameEn": "Premium" }
+        { "id": "individual", "name": "광고형", "nameEn": "Standard with Ads" },
+        { "id": "family", "name": "스탠다드", "nameEn": "Standard" },
+        { "id": "student", "name": "프리미엄", "nameEn": "Premium" }
       ],
       "dataFile": "netflix.json",
-      "active": false
+      "active": true
     },
     {
       "id": "disney-plus",
@@ -35,10 +35,25 @@
       "logo": "/images/logos/disney-plus.svg",
       "color": "#113CCF",
       "plans": [
-        { "id": "standard", "name": "스탠다드", "nameEn": "Standard" },
-        { "id": "premium", "name": "프리미엄", "nameEn": "Premium" }
+        { "id": "individual", "name": "스탠다드", "nameEn": "Standard" },
+        { "id": "family", "name": "프리미엄", "nameEn": "Premium" },
+        { "id": "student", "name": "연간(월환산)", "nameEn": "Annual (Monthly)" }
       ],
       "dataFile": "disney-plus.json",
+      "active": true
+    },
+    {
+      "id": "amazon-prime-video",
+      "name": "Amazon Prime Video",
+      "slug": "amazon-prime-video",
+      "logo": "/images/logos/amazon-prime-video.svg",
+      "color": "#00A8E1",
+      "plans": [
+        { "id": "individual", "name": "개인", "nameEn": "Individual" },
+        { "id": "family", "name": "가족", "nameEn": "Family" },
+        { "id": "student", "name": "학생", "nameEn": "Student" }
+      ],
+      "dataFile": "amazon-prime-video.json",
       "active": false
     },
     {
@@ -54,7 +69,7 @@
         { "id": "student", "name": "학생", "nameEn": "Student" }
       ],
       "dataFile": "spotify.json",
-      "active": false
+      "active": true
     }
   ]
 }

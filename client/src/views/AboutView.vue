@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useSEO } from "@/composables/useSEO";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -9,13 +9,13 @@ useSEO({
 </script>
 
 <template>
-  <div class="container py-8 max-w-3xl">
+  <div class="container py-8">
     <section class="retro-panel overflow-hidden mb-6">
       <div class="retro-titlebar">
         <h1 class="retro-title">서비스 소개</h1>
         <span class="retro-kbd">ABOUT</span>
       </div>
-      <div class="p-4">
+      <div class="retro-panel-content">
         <p class="text-body text-muted-foreground">
           OTT Price Compare의 운영 원칙과 데이터 수집 방식을 안내합니다.
         </p>

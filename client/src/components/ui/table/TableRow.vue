@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { cn } from "@/lib/utils";
 
 const props = defineProps({
@@ -7,7 +7,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <tr :class="cn('border-b border-border/70 transition-colors hover:bg-accent/50', props.class)">
+  <tr :class="cn('border-b border-border/60 transition-colors hover:bg-accent/20', props.class)">
     <slot />
   </tr>
 </template>

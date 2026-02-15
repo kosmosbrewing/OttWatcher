@@ -12,53 +12,81 @@
     <meta property="og:description" content="유튜브 프리미엄, 넷플릭스 등 OTT 서비스의 국가별 구독 요금을 비교하세요." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
 
     <!-- Critical CSS: LCP 최적화 (폰트 + CSS 변수 + 기본 스타일) -->
     <style>
-      /* 레트로 커뮤니티 스타일 색상 체계 (네이비 + 오렌지 + 크림) */
+      @font-face {
+        font-family: "BMEuljiro10yearslater";
+        src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMEuljiro10yearslater.woff")
+          format("woff");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "NeoDungGeunMo";
+        src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.3/NeoDunggeunmo.woff")
+          format("woff");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* 커뮤니티 스타일 색상 체계 (가독성 중심) */
       :root {
-        --background: 44 44% 94%;
-        --foreground: 222 42% 16%;
-        --muted: 40 32% 88%;
-        --muted-foreground: 223 16% 38%;
-        --card: 42 50% 98%;
-        --card-foreground: 223 42% 16%;
-        --primary: 23 92% 52%;
+        --background: 212 36% 97%;
+        --foreground: 222 28% 18%;
+        --muted: 210 28% 94%;
+        --muted-foreground: 220 12% 42%;
+        --card: 0 0% 100%;
+        --card-foreground: 222 28% 18%;
+        --primary: 214 78% 45%;
         --primary-foreground: 0 0% 100%;
-        --secondary: 220 35% 89%;
-        --secondary-foreground: 223 42% 16%;
-        --accent: 214 70% 90%;
-        --accent-foreground: 223 42% 16%;
-        --popover: 42 50% 98%;
-        --popover-foreground: 223 42% 16%;
-        --destructive: 0 76% 55%;
+        --secondary: 210 30% 92%;
+        --secondary-foreground: 222 25% 20%;
+        --accent: 210 100% 97%;
+        --accent-foreground: 222 25% 20%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 28% 18%;
+        --destructive: 0 72% 52%;
         --destructive-foreground: 210 40% 98%;
-        --border: 223 22% 32%;
-        --input: 223 24% 72%;
-        --ring: 23 92% 52%;
-        --radius: 0.15rem;
+        --border: 214 20% 82%;
+        --input: 214 20% 74%;
+        --ring: 214 78% 45%;
+        --radius: 0.4rem;
         --savings: 142 62% 34%;
         --savings-foreground: 0 0% 100%;
       }
 
-      html { scroll-behavior: auto; }
+      html {
+        scroll-behavior: auto;
+        font-size: 15px;
+      }
+
+      @media (max-width: 640px) {
+        /* 모바일에서는 전체 타이포를 한 단계 축소 */
+        html { font-size: 14px; }
+      }
+
       body {
         background: hsl(var(--background));
         color: hsl(var(--foreground));
-        font-family: "Nanum Gothic Coding", "D2Coding", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+        font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         overflow-x: hidden;
-        margin: 0;
-        background-image:
-          linear-gradient(0deg, rgba(21, 35, 63, 0.04) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(21, 35, 63, 0.04) 1px, transparent 1px);
-        background-size: 20px 20px;
-      }
+        margin: 0;      }
     </style>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

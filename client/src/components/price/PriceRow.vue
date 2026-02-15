@@ -1,39 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
+import type { CountryPrice } from "@/api";
+import type { DisplayCurrency } from "@/composables/usePrices";
 import { TableRow, TableCell } from "@/components/ui/table";
 import SavingsBadge from "./SavingsBadge.vue";
 import { formatNumber, countryFlag } from "@/lib/utils";
 
-const props = defineProps({
-  item: { type: Object, required: true },
-  rank: { type: Number, required: true },
-  selectedPlan: { type: String, required: true },
-  displayCurrency: { type: String, required: true },
-  basePrice: { type: Number, default: null },
-  serviceSlug: { type: String, required: true },
-});
+const props = defineProps<{
+  item: CountryPrice;
+  selectedPlan: string;
+  displayCurrency: DisplayCurrency;
+  basePrice: number | null;
+  serviceSlug: string;
+}>();
 
 // 현지 통화 가격
 const localPrice = computed(() => {
   const plan = props.item.plans?.[props.selectedPlan];
-  if (!plan?.monthly) return null;
+  if (plan?.monthly == null) return null;
   return { amount: plan.monthly, currency: props.item.currency };
 });
 
 // 환산 가격 (KRW 또는 USD)
-const convertedPrice = computed(() => {
+const convertedPrice = computed<number | null>(() => {
   return props.item.converted?.[props.selectedPlan]?.[props.displayCurrency] ?? null;
 });
 
-// 환산 가격 포맷
-const formattedConverted = computed(() => {
-  if (convertedPrice.value == null) return "-";
+function formatDisplayPrice(value: number | null): string {
+  if (value == null) return "-";
   if (props.displayCurrency === "krw") {
-    return `₩${formatNumber(Math.round(convertedPrice.value))}`;
+    return `₩${formatNumber(Math.round(value))}`;
   }
-  return `$${convertedPrice.value.toFixed(2)}`;
-});
+  return `$${value.toFixed(2)}`;
+}
+
+// 환산 가격 포맷
+const formattedConverted = computed(() => formatDisplayPrice(convertedPrice.value));
 
 // 현지 통화 포맷
 const formattedLocal = computed(() => {
@@ -46,12 +49,7 @@ const flag = computed(() => countryFlag(props.item.countryCode));
 </script>
 
 <template>
-  <TableRow class="group odd:bg-background even:bg-muted/20">
-    <!-- 순위 -->
-    <TableCell class="w-12 text-center text-caption text-muted-foreground tabular-nums font-semibold">
-      {{ rank }}
-    </TableCell>
-
+  <TableRow class="group">
     <!-- 국가 -->
     <TableCell>
       <RouterLink

@@ -33,7 +33,7 @@ DB 없이 JSON 파일로 데이터를 관리한다.
 
 참고할 항목:
 - 전체 레이아웃 구조 (헤더, 푸터, 사이드바 등)
-- Tailwind CSS 설정 (tailwind.config.js의 커스텀 컬러/폰트/spacing)
+- Tailwind CSS 설정 (tailwind.config.ts의 커스텀 컬러/폰트/spacing)
 - 공통 컴포넌트 패턴 (버튼, 카드, 테이블, 모달 등)
 - Vue Router 설정 패턴
 - API 호출 패턴 (axios/fetch 래퍼)
@@ -186,7 +186,7 @@ ott-price-compare/
 ├── client/                          # Vue 3 프론트엔드
 │   ├── src/
 │   │   ├── App.vue
-│   │   ├── main.js
+│   │   ├── main.ts
 │   │   ├── router/
 │   │   │   └── index.js
 │   │   ├── views/
@@ -229,8 +229,8 @@ ott-price-compare/
 │   │   └── images/
 │   │       └── logos/                    # OTT 서비스 로고 SVG
 │   ├── index.html
-│   ├── vite.config.js
-│   ├── tailwind.config.js
+│   ├── vite.config.ts
+│   ├── tailwind.config.ts
 │   └── package.json
 │
 ├── server/                          # Express 백엔드
@@ -261,7 +261,7 @@ ott-price-compare/
 │       └── disney-plus.json              # 2차 확장
 │
 ├── scripts/
-│   └── fetch-exchange-rates.js           # 환율 갱신 스크립트
+│   └── fetch-exchange-rates.ts           # 환율 갱신 스크립트
 │
 ├── docker-compose.yml
 ├── Dockerfile

@@ -1,14 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { ArrowUp, ArrowDown } from "lucide-vue-next";
+import type { SortOrder } from "@/composables/usePrices";
 import { cn } from "@/lib/utils";
 
-const props = defineProps({
-  modelValue: { type: String, required: true },
-});
+const props = defineProps<{
+  modelValue: SortOrder;
+}>();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+  (e: "update:modelValue", value: SortOrder): void;
+}>();
 
-function toggle() {
+function toggle(): void {
   emit("update:modelValue", props.modelValue === "asc" ? "desc" : "asc");
 }
 </script>
@@ -16,8 +19,8 @@ function toggle() {
 <template>
   <button
     :class="cn(
-      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-caption font-semibold border-2 transition-colors',
-      'bg-background text-foreground border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:bg-accent'
+      'inline-flex items-center gap-1.5 px-2.5 py-1 text-body font-medium border-b-2 border-border/70 transition-colors',
+      'bg-transparent text-foreground hover:border-primary hover:text-primary'
     )"
     @click="toggle"
   >

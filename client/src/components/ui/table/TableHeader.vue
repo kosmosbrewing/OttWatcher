@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { cn } from "@/lib/utils";
 
 const props = defineProps({
@@ -7,7 +7,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <thead :class="cn('bg-muted [&_tr]:border-b-2 [&_tr]:border-border', props.class)">
+  <thead :class="cn('[&_tr]:border-b [&_tr]:border-border/80', props.class)">
     <slot />
   </thead>
 </template>

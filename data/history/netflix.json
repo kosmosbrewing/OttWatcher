@@ -1,0 +1,315 @@
+{
+  "serviceId": "netflix",
+  "snapshots": [
+    {
+      "date": "2026-01-12",
+      "prices": [
+        {
+          "countryCode": "KR",
+          "country": "한국",
+          "krw": 14580
+        },
+        {
+          "countryCode": "TR",
+          "country": "터키",
+          "krw": 3136
+        },
+        {
+          "countryCode": "IN",
+          "country": "인도",
+          "krw": 2452
+        },
+        {
+          "countryCode": "AR",
+          "country": "아르헨티나",
+          "krw": 5214
+        },
+        {
+          "countryCode": "BR",
+          "country": "브라질",
+          "krw": 6061
+        },
+        {
+          "countryCode": "US",
+          "country": "미국",
+          "krw": 19921
+        },
+        {
+          "countryCode": "JP",
+          "country": "일본",
+          "krw": 11929
+        },
+        {
+          "countryCode": "GB",
+          "country": "영국",
+          "krw": 23415
+        },
+        {
+          "countryCode": "DE",
+          "country": "독일",
+          "krw": 20111
+        },
+        {
+          "countryCode": "CA",
+          "country": "캐나다",
+          "krw": 13835
+        },
+        {
+          "countryCode": "AU",
+          "country": "호주",
+          "krw": 15218
+        },
+        {
+          "countryCode": "PH",
+          "country": "필리핀",
+          "krw": 5848
+        },
+        {
+          "countryCode": "ID",
+          "country": "인도네시아",
+          "krw": 8674
+        },
+        {
+          "countryCode": "TH",
+          "country": "태국",
+          "krw": 9782
+        },
+        {
+          "countryCode": "VN",
+          "country": "베트남",
+          "krw": 4429
+        },
+        {
+          "countryCode": "MX",
+          "country": "멕시코",
+          "krw": 12433
+        },
+        {
+          "countryCode": "EG",
+          "country": "이집트",
+          "krw": 3376
+        },
+        {
+          "countryCode": "NG",
+          "country": "나이지리아",
+          "krw": 2664
+        },
+        {
+          "countryCode": "ZA",
+          "country": "남아공",
+          "krw": 8512
+        },
+        {
+          "countryCode": "PL",
+          "country": "폴란드",
+          "krw": 9492
+        },
+        {
+          "countryCode": "UA",
+          "country": "우크라이나",
+          "krw": 3397
+        },
+        {
+          "countryCode": "SG",
+          "country": "싱가포르",
+          "krw": 12634
+        },
+        {
+          "countryCode": "HK",
+          "country": "홍콩",
+          "krw": 14257
+        },
+        {
+          "countryCode": "TW",
+          "country": "대만",
+          "krw": 8719
+        },
+        {
+          "countryCode": "MY",
+          "country": "말레이시아",
+          "krw": 7647
+        },
+        {
+          "countryCode": "CL",
+          "country": "칠레",
+          "krw": 9398
+        },
+        {
+          "countryCode": "CO",
+          "country": "콜롬비아",
+          "krw": 8104
+        },
+        {
+          "countryCode": "CH",
+          "country": "스위스",
+          "krw": 25158
+        },
+        {
+          "countryCode": "SE",
+          "country": "스웨덴",
+          "krw": 16935
+        },
+        {
+          "countryCode": "NZ",
+          "country": "뉴질랜드",
+          "krw": 14721
+        }
+      ]
+    },
+    {
+      "date": "2026-02-12",
+      "prices": [
+        {
+          "countryCode": "KR",
+          "country": "한국",
+          "krw": 14155
+        },
+        {
+          "countryCode": "TR",
+          "country": "터키",
+          "krw": 3045
+        },
+        {
+          "countryCode": "IN",
+          "country": "인도",
+          "krw": 2381
+        },
+        {
+          "countryCode": "AR",
+          "country": "아르헨티나",
+          "krw": 5062
+        },
+        {
+          "countryCode": "BR",
+          "country": "브라질",
+          "krw": 5884
+        },
+        {
+          "countryCode": "US",
+          "country": "미국",
+          "krw": 19341
+        },
+        {
+          "countryCode": "JP",
+          "country": "일본",
+          "krw": 11582
+        },
+        {
+          "countryCode": "GB",
+          "country": "영국",
+          "krw": 22733
+        },
+        {
+          "countryCode": "DE",
+          "country": "독일",
+          "krw": 19525
+        },
+        {
+          "countryCode": "CA",
+          "country": "캐나다",
+          "krw": 13432
+        },
+        {
+          "countryCode": "AU",
+          "country": "호주",
+          "krw": 14775
+        },
+        {
+          "countryCode": "PH",
+          "country": "필리핀",
+          "krw": 5678
+        },
+        {
+          "countryCode": "ID",
+          "country": "인도네시아",
+          "krw": 8421
+        },
+        {
+          "countryCode": "TH",
+          "country": "태국",
+          "krw": 9497
+        },
+        {
+          "countryCode": "VN",
+          "country": "베트남",
+          "krw": 4300
+        },
+        {
+          "countryCode": "MX",
+          "country": "멕시코",
+          "krw": 12071
+        },
+        {
+          "countryCode": "EG",
+          "country": "이집트",
+          "krw": 3278
+        },
+        {
+          "countryCode": "NG",
+          "country": "나이지리아",
+          "krw": 2586
+        },
+        {
+          "countryCode": "ZA",
+          "country": "남아공",
+          "krw": 8264
+        },
+        {
+          "countryCode": "PL",
+          "country": "폴란드",
+          "krw": 9216
+        },
+        {
+          "countryCode": "UA",
+          "country": "우크라이나",
+          "krw": 3298
+        },
+        {
+          "countryCode": "SG",
+          "country": "싱가포르",
+          "krw": 12266
+        },
+        {
+          "countryCode": "HK",
+          "country": "홍콩",
+          "krw": 13842
+        },
+        {
+          "countryCode": "TW",
+          "country": "대만",
+          "krw": 8465
+        },
+        {
+          "countryCode": "MY",
+          "country": "말레이시아",
+          "krw": 7424
+        },
+        {
+          "countryCode": "CL",
+          "country": "칠레",
+          "krw": 9124
+        },
+        {
+          "countryCode": "CO",
+          "country": "콜롬비아",
+          "krw": 7868
+        },
+        {
+          "countryCode": "CH",
+          "country": "스위스",
+          "krw": 24425
+        },
+        {
+          "countryCode": "SE",
+          "country": "스웨덴",
+          "krw": 16442
+        },
+        {
+          "countryCode": "NZ",
+          "country": "뉴질랜드",
+          "krw": 14292
+        }
+      ]
+    }
+  ]
+}

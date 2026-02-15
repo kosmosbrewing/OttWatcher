@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { AlertCircle } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 

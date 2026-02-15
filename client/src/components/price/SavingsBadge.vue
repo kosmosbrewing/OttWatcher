@@ -1,12 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 import { Badge } from "@/components/ui/badge";
 import { calcSavingsPercent } from "@/lib/utils";
 
-const props = defineProps({
-  price: { type: Number, required: true },
-  basePrice: { type: Number, required: true },
-});
+const props = defineProps<{
+  price: number;
+  basePrice: number;
+}>();
 
 const percent = computed(() => calcSavingsPercent(props.price, props.basePrice));
 
@@ -17,15 +17,15 @@ const label = computed(() => {
   return "기준";
 });
 
-const variant = computed(() => {
+const variant = computed<"savings" | "destructive" | "neutral">(() => {
   if (percent.value > 0) return "savings";
   if (percent.value < 0) return "destructive";
-  return "secondary";
+  return "neutral";
 });
 </script>
 
 <template>
-  <Badge :variant="variant" class="text-tiny tabular-nums">
+  <Badge :variant="variant" class="h-6 w-[60px] justify-center px-0 py-0 text-[0.84rem] font-bold tabular-nums leading-none !text-white">
     {{ label }}
   </Badge>
 </template>

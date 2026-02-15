@@ -1,10 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, RouterLink } from "vue-router";
 import { usePrices } from "@/composables/usePrices";
 import { useServices } from "@/composables/useServices";
 import { useSEO } from "@/composables/useSEO";
-import { fetchTrends, subscribePriceAlert } from "@/api";
+import {
+  fetchTrends,
+  subscribePriceAlert,
+  type CountryPrice,
+  type ServiceInfo,
+  type ServicePlan,
+  type TrendPoint,
+  type TrendsResponse,
+} from "@/api";
 import { formatNumber, calcSavingsPercent, countryFlag } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -14,7 +22,15 @@ import { ArrowLeft } from "lucide-vue-next";
 const route = useRoute();
 const { services, loadServices } = useServices();
 const { priceData, loading, error, baseCountryPrice, loadPrices } = usePrices();
-const trendData = ref(null);
+const trendData = ref<TrendsResponse | null>(null);
+const serviceSlug = computed(() => {
+  const slug = route.params.serviceSlug;
+  return typeof slug === "string" ? slug : "";
+});
+const countryCode = computed(() => {
+  const code = route.params.countryCode;
+  return typeof code === "string" ? code : "";
+});
 
 const alertEmail = ref("");
 const alertTargetPrice = ref("");
@@ -23,22 +39,22 @@ const alertSuccess = ref("");
 const alertError = ref("");
 
 // 현재 서비스 메타
-const currentService = computed(() =>
-  services.value.find((s) => s.slug === route.params.serviceSlug)
+const currentService = computed<ServiceInfo | undefined>(() =>
+  services.value.find((s) => s.slug === serviceSlug.value)
 );
 
 // 현재 국가 데이터
-const countryData = computed(() => {
+const countryData = computed<CountryPrice | null>(() => {
   if (!priceData.value?.prices) return null;
-  const code = route.params.countryCode?.toUpperCase();
-  return priceData.value.prices.find((p) => p.countryCode === code);
+  const code = countryCode.value.toUpperCase();
+  return priceData.value.prices.find((p) => p.countryCode === code) || null;
 });
 
 // 국기 이모지
 const flag = computed(() => countryFlag(countryData.value?.countryCode));
 
 // 이 국가의 전체 순위 (개인 요금제 KRW 기준)
-const rank = computed(() => {
+const rank = computed<number | null>(() => {
   if (!priceData.value?.prices || !countryData.value) return null;
   const sorted = [...priceData.value.prices].sort(
     (a, b) => (a.converted?.individual?.krw ?? Infinity) - (b.converted?.individual?.krw ?? Infinity)
@@ -47,7 +63,7 @@ const rank = computed(() => {
 });
 
 // 같은 대륙 다른 국가 (최대 5개, 가격순)
-const nearbyCountries = computed(() => {
+const nearbyCountries = computed<CountryPrice[]>(() => {
   if (!priceData.value?.prices || !countryData.value) return [];
   return priceData.value.prices
     .filter(
@@ -59,16 +75,24 @@ const nearbyCountries = computed(() => {
     .slice(0, 5);
 });
 
-const countryHistory = computed(() => {
+const countryHistory = computed<TrendPoint[]>(() => {
   const code = countryData.value?.countryCode?.toUpperCase();
   if (!code || !trendData.value?.countryChanges) return [];
   return trendData.value.countryChanges[code] || [];
 });
 
+type PlanPriceRow = ServicePlan & {
+  localMonthly?: number;
+  localYearly?: number;
+  usd?: number;
+  krw?: number;
+  baseKrw?: number;
+};
+
 // 요금제별 가격 정보 배열로 변환
-const planPrices = computed(() => {
+const planPrices = computed<PlanPriceRow[]>(() => {
   if (!currentService.value || !countryData.value) return [];
-  return currentService.value.plans.map((plan) => {
+  return (currentService.value.plans || []).map((plan) => {
     const local = countryData.value.plans?.[plan.id];
     const converted = countryData.value.converted?.[plan.id];
     const baseConverted = baseCountryPrice.value?.converted?.[plan.id];
@@ -85,14 +109,14 @@ const planPrices = computed(() => {
 
 // SEO
 const pageTitle = computed(() => {
-  const svc = currentService.value?.name || route.params.serviceSlug;
-  const country = countryData.value?.country || route.params.countryCode?.toUpperCase();
+  const svc = currentService.value?.name || serviceSlug.value;
+  const country = countryData.value?.country || countryCode.value.toUpperCase();
   return `${svc} ${country} 가격 | OTT 가격 비교`;
 });
 
 const pageDescription = computed(() => {
-  const svc = currentService.value?.name || route.params.serviceSlug;
-  const country = countryData.value?.country || route.params.countryCode?.toUpperCase();
+  const svc = currentService.value?.name || serviceSlug.value;
+  const country = countryData.value?.country || countryCode.value.toUpperCase();
   const krw = countryData.value?.converted?.individual?.krw;
   const savings = krw && baseCountryPrice.value?.converted?.individual?.krw
     ? calcSavingsPercent(krw, baseCountryPrice.value.converted.individual.krw)
@@ -106,72 +130,71 @@ const pageDescription = computed(() => {
 useSEO({ title: pageTitle, description: pageDescription });
 
 // 통화 포맷 헬퍼
-function fmtKrw(val) {
+function fmtKrw(val: number | null | undefined): string {
   if (val == null) return "-";
   return `₩${formatNumber(Math.round(val))}`;
 }
 
-function fmtUsd(val) {
+function fmtUsd(val: number | null | undefined): string {
   if (val == null) return "-";
   return `$${val.toFixed(2)}`;
 }
 
-function fmtLocal(val, currency) {
+function fmtLocal(val: number | null | undefined, currency: string | undefined): string {
   if (val == null) return "-";
-  return `${formatNumber(val)} ${currency}`;
+  return `${formatNumber(val)} ${currency || ""}`.trim();
 }
 
-async function loadTrendData(serviceSlug) {
+async function loadTrendData(service: string): Promise<void> {
   try {
-    trendData.value = await fetchTrends(serviceSlug);
+    trendData.value = await fetchTrends(service);
   } catch {
     trendData.value = null;
   }
 }
 
-async function submitAlert() {
-  if (!countryData.value || !currentService.value) return;
+async function submitAlert(): Promise<void> {
+  if (!countryData.value || !currentService.value || !serviceSlug.value) return;
   alertError.value = "";
   alertSuccess.value = "";
   alertSubmitting.value = true;
 
   try {
     const response = await subscribePriceAlert({
-      serviceSlug: route.params.serviceSlug,
+      serviceSlug: serviceSlug.value,
       countryCode: countryData.value.countryCode,
       planId: "individual",
       targetPriceKrw: Number(alertTargetPrice.value),
       email: alertEmail.value.trim(),
     });
-    alertSuccess.value = response.message;
+    alertSuccess.value = String(response.message || "알림 신청이 완료되었습니다.");
     alertTargetPrice.value = "";
-  } catch (e) {
-    alertError.value = e.message;
+  } catch (e: unknown) {
+    alertError.value = e instanceof Error ? e.message : "신청 처리 중 오류가 발생했습니다.";
   } finally {
     alertSubmitting.value = false;
   }
 }
 
-async function init() {
+async function init(): Promise<void> {
   await loadServices();
-  loadPrices(route.params.serviceSlug);
-  loadTrendData(route.params.serviceSlug);
+  if (!serviceSlug.value) return;
+  await Promise.all([loadPrices(serviceSlug.value), loadTrendData(serviceSlug.value)]);
 }
 
 onMounted(init);
 
 watch(
-  () => route.params.serviceSlug + route.params.countryCode,
+  [serviceSlug, countryCode],
   () => {
-    if (!route.params.serviceSlug) return;
-    loadPrices(route.params.serviceSlug);
-    loadTrendData(route.params.serviceSlug);
+    if (!serviceSlug.value) return;
+    void Promise.all([loadPrices(serviceSlug.value), loadTrendData(serviceSlug.value)]);
   }
 );
 </script>
 
 <template>
-  <div class="container py-8 max-w-4xl">
+  <div class="container py-8">
     <!-- 로딩 -->
     <div v-if="loading" class="text-center py-20">
       <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -184,7 +207,7 @@ watch(
         {{ error || '해당 국가의 가격 정보를 찾을 수 없습니다.' }}
       </p>
       <RouterLink
-        :to="`/${route.params.serviceSlug}`"
+        :to="`/${serviceSlug}`"
         class="text-primary text-body hover:underline"
       >
         ← 전체 가격표로 돌아가기
@@ -195,7 +218,7 @@ watch(
     <div v-else-if="countryData">
       <!-- 뒤로가기 -->
       <RouterLink
-        :to="`/${route.params.serviceSlug}`"
+        :to="`/${serviceSlug}`"
         class="retro-button-subtle mb-4"
       >
         <ArrowLeft class="h-3.5 w-3.5" />
@@ -208,11 +231,11 @@ watch(
           <h1 class="retro-title">{{ countryData.country }} 국가 상세</h1>
           <span class="retro-kbd">RANK {{ rank || "-" }}</span>
         </div>
-        <div class="p-4 flex items-start gap-4">
+        <div class="retro-panel-content flex items-start gap-4">
           <span class="text-4xl">{{ flag }}</span>
           <div>
             <h2 class="text-h2 mb-1">
-              {{ currentService?.name || route.params.serviceSlug }} {{ countryData.country }} 가격
+              {{ currentService?.name || serviceSlug }} {{ countryData.country }} 가격
             </h2>
             <div class="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
               <span class="retro-chip">통화 {{ countryData.currency }}</span>
@@ -276,7 +299,7 @@ watch(
         <div class="retro-titlebar">
           <h2 class="retro-title">데이터 메타</h2>
         </div>
-        <CardContent class="p-4">
+        <CardContent>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
             <div>
               <p class="text-tiny text-muted-foreground uppercase">마지막 업데이트</p>
@@ -302,7 +325,7 @@ watch(
         <CardHeader>
           <CardTitle>최근 변동 이력 (개인 요금제)</CardTitle>
         </CardHeader>
-        <CardContent class="p-4">
+        <CardContent>
           <ul v-if="countryHistory.length > 0" class="space-y-2">
             <li
               v-for="(point, idx) in countryHistory"
@@ -321,7 +344,7 @@ watch(
         <CardHeader>
           <CardTitle>가격 하락 알림 (베타)</CardTitle>
         </CardHeader>
-        <CardContent class="p-4">
+        <CardContent>
           <form class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end" @submit.prevent="submitAlert">
             <label class="sm:col-span-2 space-y-1">
               <span class="text-caption text-muted-foreground">이메일</span>
@@ -351,9 +374,6 @@ watch(
               >
                 {{ alertSubmitting ? "신청 중..." : "알림 신청" }}
               </button>
-              <RouterLink to="/report" class="retro-link text-caption">
-                가격 제보하기
-              </RouterLink>
             </div>
           </form>
           <p v-if="alertError" class="text-caption text-destructive mt-3">{{ alertError }}</p>
@@ -363,10 +383,11 @@ watch(
 
       <!-- 같은 대륙 국가 비교 -->
       <Card v-if="nearbyCountries.length > 0" class="retro-panel overflow-hidden">
-        <CardHeader>
-          <CardTitle>같은 대륙 다른 국가</CardTitle>
-        </CardHeader>
-        <CardContent class="p-0 sm:p-2">
+        <div class="retro-titlebar">
+          <h2 class="retro-title">같은 대륙 다른 국가</h2>
+          <span class="text-tiny text-muted-foreground">가격순 상위 5개</span>
+        </div>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
@@ -379,7 +400,7 @@ watch(
               <TableRow v-for="nearby in nearbyCountries" :key="nearby.countryCode">
                 <TableCell>
                   <RouterLink
-                    :to="`/${route.params.serviceSlug}/${nearby.countryCode.toLowerCase()}`"
+                    :to="`/${serviceSlug}/${nearby.countryCode.toLowerCase()}`"
                     class="inline-flex items-center gap-2 hover:text-primary transition-colors"
                   >
                     <span>{{ countryFlag(nearby.countryCode) }}</span>

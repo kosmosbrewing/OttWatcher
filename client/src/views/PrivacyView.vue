@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useSEO } from "@/composables/useSEO";
 
 useSEO({
@@ -8,20 +8,20 @@ useSEO({
 </script>
 
 <template>
-  <div class="container py-8 max-w-3xl">
+  <div class="container py-8">
     <section class="retro-panel overflow-hidden mb-6">
       <div class="retro-titlebar">
         <h1 class="retro-title">개인정보처리방침</h1>
         <span class="retro-kbd">POLICY</span>
       </div>
-      <div class="p-4">
+      <div class="retro-panel-content">
         <p class="text-body text-muted-foreground">
-          서비스 운영과 데이터 제보 처리 과정에서의 개인정보 처리 원칙을 안내합니다.
+          서비스 운영과 데이터 제공 과정에서의 개인정보 처리 원칙을 안내합니다.
         </p>
       </div>
     </section>
 
-    <div class="retro-panel p-4 space-y-6">
+    <div class="retro-panel retro-panel-content space-y-6">
       <section>
         <h2 class="text-h2 mb-3">1. 수집하는 개인정보</h2>
         <p class="text-body leading-relaxed">

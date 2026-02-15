@@ -1,0 +1,1029 @@
+{
+  "serviceId": "netflix",
+  "lastUpdated": "2026-02-12",
+  "exchangeRateDate": "2026-02-12",
+  "baseCurrency": "USD",
+  "baseCountry": "KR",
+  "prices": [
+    {
+      "country": "한국",
+      "countryCode": "KR",
+      "continent": "asia",
+      "currency": "KRW",
+      "plans": {
+        "individual": {
+          "monthly": 14155,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 20115,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 27565,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 9.73,
+          "krw": 14155
+        },
+        "family": {
+          "usd": 13.82,
+          "krw": 20115
+        },
+        "student": {
+          "usd": 18.94,
+          "krw": 27565
+        }
+      }
+    },
+    {
+      "country": "터키",
+      "countryCode": "TR",
+      "continent": "europe",
+      "currency": "TRY",
+      "plans": {
+        "individual": {
+          "monthly": 75.99,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 107.99,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 147.98,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 2.09,
+          "krw": 3045
+        },
+        "family": {
+          "usd": 2.97,
+          "krw": 4327
+        },
+        "student": {
+          "usd": 4.07,
+          "krw": 5929
+        }
+      }
+    },
+    {
+      "country": "인도",
+      "countryCode": "IN",
+      "continent": "asia",
+      "currency": "INR",
+      "plans": {
+        "individual": {
+          "monthly": 141.55,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 201.15,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 275.65,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 1.63,
+          "krw": 2381
+        },
+        "family": {
+          "usd": 2.32,
+          "krw": 3383
+        },
+        "student": {
+          "usd": 3.18,
+          "krw": 4636
+        }
+      }
+    },
+    {
+      "country": "아르헨티나",
+      "countryCode": "AR",
+      "continent": "south-america",
+      "currency": "ARS",
+      "plans": {
+        "individual": {
+          "monthly": 3704.05,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 5263.65,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 7213.15,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 3.48,
+          "krw": 5062
+        },
+        "family": {
+          "usd": 4.94,
+          "krw": 7193
+        },
+        "student": {
+          "usd": 6.77,
+          "krw": 9857
+        }
+      }
+    },
+    {
+      "country": "브라질",
+      "countryCode": "BR",
+      "continent": "south-america",
+      "currency": "BRL",
+      "plans": {
+        "individual": {
+          "monthly": 23.65,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 33.62,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 46.07,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 4.05,
+          "krw": 5884
+        },
+        "family": {
+          "usd": 5.75,
+          "krw": 8362
+        },
+        "student": {
+          "usd": 7.88,
+          "krw": 11459
+        }
+      }
+    },
+    {
+      "country": "미국",
+      "countryCode": "US",
+      "continent": "north-america",
+      "currency": "USD",
+      "plans": {
+        "individual": {
+          "monthly": 13.29,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 18.89,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 25.88,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 13.29,
+          "krw": 19341
+        },
+        "family": {
+          "usd": 18.89,
+          "krw": 27485
+        },
+        "student": {
+          "usd": 25.88,
+          "krw": 37664
+        }
+      }
+    },
+    {
+      "country": "일본",
+      "countryCode": "JP",
+      "continent": "asia",
+      "currency": "JPY",
+      "plans": {
+        "individual": {
+          "monthly": 1216,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 1728,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 2368,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 7.96,
+          "krw": 11582
+        },
+        "family": {
+          "usd": 11.31,
+          "krw": 16459
+        },
+        "student": {
+          "usd": 15.5,
+          "krw": 22555
+        }
+      }
+    },
+    {
+      "country": "영국",
+      "countryCode": "GB",
+      "continent": "europe",
+      "currency": "GBP",
+      "plans": {
+        "individual": {
+          "monthly": 12.34,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 17.54,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 24.03,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 15.62,
+          "krw": 22733
+        },
+        "family": {
+          "usd": 22.19,
+          "krw": 32304
+        },
+        "student": {
+          "usd": 30.41,
+          "krw": 44269
+        }
+      }
+    },
+    {
+      "country": "독일",
+      "countryCode": "DE",
+      "continent": "europe",
+      "currency": "EUR",
+      "plans": {
+        "individual": {
+          "monthly": 12.34,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 17.54,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 24.03,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 13.41,
+          "krw": 19525
+        },
+        "family": {
+          "usd": 19.06,
+          "krw": 27747
+        },
+        "student": {
+          "usd": 26.12,
+          "krw": 38023
+        }
+      }
+    },
+    {
+      "country": "캐나다",
+      "countryCode": "CA",
+      "continent": "north-america",
+      "currency": "CAD",
+      "plans": {
+        "individual": {
+          "monthly": 13.29,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 18.89,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 25.88,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 9.23,
+          "krw": 13432
+        },
+        "family": {
+          "usd": 13.12,
+          "krw": 19088
+        },
+        "student": {
+          "usd": 17.98,
+          "krw": 26157
+        }
+      }
+    },
+    {
+      "country": "호주",
+      "countryCode": "AU",
+      "continent": "oceania",
+      "currency": "AUD",
+      "plans": {
+        "individual": {
+          "monthly": 16.14,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 22.94,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 31.43,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 10.16,
+          "krw": 14775
+        },
+        "family": {
+          "usd": 14.43,
+          "krw": 20997
+        },
+        "student": {
+          "usd": 19.78,
+          "krw": 28773
+        }
+      }
+    },
+    {
+      "country": "필리핀",
+      "countryCode": "PH",
+      "continent": "asia",
+      "currency": "PHP",
+      "plans": {
+        "individual": {
+          "monthly": 227.05,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 322.65,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 442.15,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 3.9,
+          "krw": 5678
+        },
+        "family": {
+          "usd": 5.55,
+          "krw": 8069
+        },
+        "student": {
+          "usd": 7.6,
+          "krw": 11057
+        }
+      }
+    },
+    {
+      "country": "인도네시아",
+      "countryCode": "ID",
+      "continent": "asia",
+      "currency": "IDR",
+      "plans": {
+        "individual": {
+          "monthly": 94050,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 133650,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 183150,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 5.79,
+          "krw": 8421
+        },
+        "family": {
+          "usd": 8.22,
+          "krw": 11966
+        },
+        "student": {
+          "usd": 11.27,
+          "krw": 16398
+        }
+      }
+    },
+    {
+      "country": "태국",
+      "countryCode": "TH",
+      "continent": "asia",
+      "currency": "THB",
+      "plans": {
+        "individual": {
+          "monthly": 227.05,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 322.65,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 442.15,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 6.53,
+          "krw": 9497
+        },
+        "family": {
+          "usd": 9.27,
+          "krw": 13496
+        },
+        "student": {
+          "usd": 12.71,
+          "krw": 18494
+        }
+      }
+    },
+    {
+      "country": "베트남",
+      "countryCode": "VN",
+      "continent": "asia",
+      "currency": "VND",
+      "plans": {
+        "individual": {
+          "monthly": 75050,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 106650,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 146150,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 2.95,
+          "krw": 4300
+        },
+        "family": {
+          "usd": 4.2,
+          "krw": 6110
+        },
+        "student": {
+          "usd": 5.75,
+          "krw": 8373
+        }
+      }
+    },
+    {
+      "country": "멕시코",
+      "countryCode": "MX",
+      "continent": "north-america",
+      "currency": "MXN",
+      "plans": {
+        "individual": {
+          "monthly": 170.05,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 241.65,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 331.15,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 8.29,
+          "krw": 12071
+        },
+        "family": {
+          "usd": 11.79,
+          "krw": 17153
+        },
+        "student": {
+          "usd": 16.15,
+          "krw": 23506
+        }
+      }
+    },
+    {
+      "country": "이집트",
+      "countryCode": "EG",
+      "continent": "africa",
+      "currency": "EGP",
+      "plans": {
+        "individual": {
+          "monthly": 113.99,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 161.99,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 221.98,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 2.25,
+          "krw": 3278
+        },
+        "family": {
+          "usd": 3.2,
+          "krw": 4659
+        },
+        "student": {
+          "usd": 4.38,
+          "krw": 6384
+        }
+      }
+    },
+    {
+      "country": "나이지리아",
+      "countryCode": "NG",
+      "continent": "africa",
+      "currency": "NGN",
+      "plans": {
+        "individual": {
+          "monthly": 2755,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 3915,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 5365,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 1.78,
+          "krw": 2586
+        },
+        "family": {
+          "usd": 2.52,
+          "krw": 3675
+        },
+        "student": {
+          "usd": 3.46,
+          "krw": 5036
+        }
+      }
+    },
+    {
+      "country": "남아공",
+      "countryCode": "ZA",
+      "continent": "africa",
+      "currency": "ZAR",
+      "plans": {
+        "individual": {
+          "monthly": 104.49,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 148.49,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 203.48,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 5.68,
+          "krw": 8264
+        },
+        "family": {
+          "usd": 8.07,
+          "krw": 11744
+        },
+        "student": {
+          "usd": 11.06,
+          "krw": 16093
+        }
+      }
+    },
+    {
+      "country": "폴란드",
+      "countryCode": "PL",
+      "continent": "europe",
+      "currency": "PLN",
+      "plans": {
+        "individual": {
+          "monthly": 25.64,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 36.44,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 49.93,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 6.34,
+          "krw": 9216
+        },
+        "family": {
+          "usd": 9,
+          "krw": 13096
+        },
+        "student": {
+          "usd": 12.34,
+          "krw": 17947
+        }
+      }
+    },
+    {
+      "country": "우크라이나",
+      "countryCode": "UA",
+      "continent": "europe",
+      "currency": "UAH",
+      "plans": {
+        "individual": {
+          "monthly": 94.05,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 133.65,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 183.15,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 2.27,
+          "krw": 3298
+        },
+        "family": {
+          "usd": 3.23,
+          "krw": 4687
+        },
+        "student": {
+          "usd": 4.42,
+          "krw": 6423
+        }
+      }
+    },
+    {
+      "country": "싱가포르",
+      "countryCode": "SG",
+      "continent": "asia",
+      "currency": "SGD",
+      "plans": {
+        "individual": {
+          "monthly": 11.38,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 16.17,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 22.16,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 8.43,
+          "krw": 12266
+        },
+        "family": {
+          "usd": 11.97,
+          "krw": 17431
+        },
+        "student": {
+          "usd": 16.41,
+          "krw": 23887
+        }
+      }
+    },
+    {
+      "country": "홍콩",
+      "countryCode": "HK",
+      "continent": "asia",
+      "currency": "HKD",
+      "plans": {
+        "individual": {
+          "monthly": 74.1,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 105.3,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 144.3,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 9.51,
+          "krw": 13842
+        },
+        "family": {
+          "usd": 13.51,
+          "krw": 19671
+        },
+        "student": {
+          "usd": 18.52,
+          "krw": 26956
+        }
+      }
+    },
+    {
+      "country": "대만",
+      "countryCode": "TW",
+      "continent": "asia",
+      "currency": "TWD",
+      "plans": {
+        "individual": {
+          "monthly": 189.05,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 268.65,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 368.15,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 5.81,
+          "krw": 8465
+        },
+        "family": {
+          "usd": 8.26,
+          "krw": 12029
+        },
+        "student": {
+          "usd": 11.32,
+          "krw": 16484
+        }
+      }
+    },
+    {
+      "country": "말레이시아",
+      "countryCode": "MY",
+      "continent": "asia",
+      "currency": "MYR",
+      "plans": {
+        "individual": {
+          "monthly": 22.71,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 32.27,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 44.22,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 5.1,
+          "krw": 7424
+        },
+        "family": {
+          "usd": 7.25,
+          "krw": 10550
+        },
+        "student": {
+          "usd": 9.93,
+          "krw": 14458
+        }
+      }
+    },
+    {
+      "country": "칠레",
+      "countryCode": "CL",
+      "continent": "south-america",
+      "currency": "CLP",
+      "plans": {
+        "individual": {
+          "monthly": 6175,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 8775,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 12025,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 6.27,
+          "krw": 9124
+        },
+        "family": {
+          "usd": 8.91,
+          "krw": 12965
+        },
+        "student": {
+          "usd": 12.21,
+          "krw": 17767
+        }
+      }
+    },
+    {
+      "country": "콜롬비아",
+      "countryCode": "CO",
+      "continent": "south-america",
+      "currency": "COP",
+      "plans": {
+        "individual": {
+          "monthly": 22705,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 32265,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 44215,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 5.41,
+          "krw": 7868
+        },
+        "family": {
+          "usd": 7.68,
+          "krw": 11181
+        },
+        "student": {
+          "usd": 10.53,
+          "krw": 15322
+        }
+      }
+    },
+    {
+      "country": "스위스",
+      "countryCode": "CH",
+      "continent": "europe",
+      "currency": "CHF",
+      "plans": {
+        "individual": {
+          "monthly": 15.11,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 21.47,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 29.42,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 16.79,
+          "krw": 24425
+        },
+        "family": {
+          "usd": 23.85,
+          "krw": 34709
+        },
+        "student": {
+          "usd": 32.69,
+          "krw": 47564
+        }
+      }
+    },
+    {
+      "country": "스웨덴",
+      "countryCode": "SE",
+      "continent": "europe",
+      "currency": "SEK",
+      "plans": {
+        "individual": {
+          "monthly": 122.55,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 174.15,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 238.65,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 11.3,
+          "krw": 16442
+        },
+        "family": {
+          "usd": 16.05,
+          "krw": 23364
+        },
+        "student": {
+          "usd": 22,
+          "krw": 32018
+        }
+      }
+    },
+    {
+      "country": "뉴질랜드",
+      "countryCode": "NZ",
+      "continent": "oceania",
+      "currency": "NZD",
+      "plans": {
+        "individual": {
+          "monthly": 17.09,
+          "yearly": null
+        },
+        "family": {
+          "monthly": 24.29,
+          "yearly": null
+        },
+        "student": {
+          "monthly": 33.28,
+          "yearly": null
+        }
+      },
+      "converted": {
+        "individual": {
+          "usd": 9.82,
+          "krw": 14292
+        },
+        "family": {
+          "usd": 13.96,
+          "krw": 20309
+        },
+        "student": {
+          "usd": 19.13,
+          "krw": 27831
+        }
+      }
+    }
+  ]
+}

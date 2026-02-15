@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { cn } from "@/lib/utils";
 
 const props = defineProps({
@@ -8,7 +8,7 @@ const props = defineProps({
 
 <template>
   <div
-    :class="cn('rounded-sm border-2 border-border bg-card text-card-foreground', props.class)"
+    :class="cn('rounded-none border-0 bg-card text-card-foreground shadow-none', props.class)"
   >
     <slot />
   </div>

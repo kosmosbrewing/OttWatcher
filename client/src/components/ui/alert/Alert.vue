@@ -1,25 +1,44 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { Check, X, CheckCircle2, AlertTriangle } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 
-const props = defineProps({
-  class: { type: String, default: "" },
-  message: { type: String, default: "" },
-  type: { type: String, default: "success" },
-  duration: { type: Number, default: 2000 },
-  confirmMode: { type: Boolean, default: false },
-  confirmVariant: { type: String, default: "success" },
-  confirmText: { type: String, default: "확인" },
-  cancelText: { type: String, default: "취소" },
-});
+type AlertType = "success" | "error";
+type ConfirmVariant = "success" | "destructive";
+
+const props = withDefaults(
+  defineProps<{
+    class?: string;
+    message?: string;
+    type?: AlertType;
+    duration?: number;
+    confirmMode?: boolean;
+    confirmVariant?: ConfirmVariant;
+    confirmText?: string;
+    cancelText?: string;
+  }>(),
+  {
+    class: "",
+    message: "",
+    type: "success",
+    duration: 2000,
+    confirmMode: false,
+    confirmVariant: "success",
+    confirmText: "확인",
+    cancelText: "취소",
+  }
+);
 
 const isDestructive = computed(() => props.confirmVariant === "destructive");
 
-const emit = defineEmits(["close", "confirm", "cancel"]);
+const emit = defineEmits<{
+  (e: "close"): void;
+  (e: "confirm"): void;
+  (e: "cancel"): void;
+}>();
 
 const isVisible = ref(true);
-let timer = null;
+let timer: ReturnType<typeof setTimeout> | null = null;
 
 const alertStyles = computed(() => {
   if (props.confirmMode) return "";
@@ -34,9 +53,15 @@ const containerStyles = computed(() => {
   return "rounded-2xl shadow-lg px-5 py-3 flex items-center gap-2 pointer-events-auto";
 });
 
-const onAfterLeave = () => emit("close");
-const handleConfirm = () => { emit("confirm"); isVisible.value = false; };
-const handleCancel = () => { emit("cancel"); isVisible.value = false; };
+const onAfterLeave = (): void => emit("close");
+const handleConfirm = (): void => {
+  emit("confirm");
+  isVisible.value = false;
+};
+const handleCancel = (): void => {
+  emit("cancel");
+  isVisible.value = false;
+};
 
 onMounted(() => {
   if (!props.confirmMode) {

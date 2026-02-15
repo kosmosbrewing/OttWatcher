@@ -1,22 +1,29 @@
-<script setup>
+<script setup lang="ts">
 import { cn } from "@/lib/utils";
 
-const props = defineProps({
-  continents: { type: Object, required: true },
-  modelValue: { type: String, required: true },
-});
+type ContinentInfo = {
+  name: string;
+  [key: string]: unknown;
+};
 
-const emit = defineEmits(["update:modelValue"]);
+const props = defineProps<{
+  continents: Record<string, ContinentInfo>;
+  modelValue: string;
+}>();
+
+const emit = defineEmits<{
+  (e: "update:modelValue", value: string): void;
+}>();
 </script>
 
 <template>
-  <div class="flex flex-wrap gap-2">
+  <div class="flex flex-wrap gap-1">
     <button
       :class="cn(
-        'px-3 py-1.5 rounded-sm text-caption font-semibold border-2 transition-colors',
+        'px-2.5 py-1 text-body font-medium border-b-2 border-transparent transition-colors',
         modelValue === 'all'
-          ? 'bg-primary text-primary-foreground border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]'
-          : 'bg-background text-muted-foreground border-border hover:border-border hover:text-foreground hover:bg-accent'
+          ? 'text-primary border-primary'
+          : 'text-muted-foreground hover:text-foreground hover:border-border/70'
       )"
       @click="emit('update:modelValue', 'all')"
     >
@@ -26,10 +33,10 @@ const emit = defineEmits(["update:modelValue"]);
       v-for="(info, key) in continents"
       :key="key"
       :class="cn(
-        'px-3 py-1.5 rounded-sm text-caption font-semibold border-2 transition-colors',
+        'px-2.5 py-1 text-body font-medium border-b-2 border-transparent transition-colors',
         modelValue === key
-          ? 'bg-primary text-primary-foreground border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]'
-          : 'bg-background text-muted-foreground border-border hover:border-border hover:text-foreground hover:bg-accent'
+          ? 'text-primary border-primary'
+          : 'text-muted-foreground hover:text-foreground hover:border-border/70'
       )"
       @click="emit('update:modelValue', key)"
     >

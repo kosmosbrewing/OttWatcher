@@ -1,24 +1,27 @@
-<script setup>
+<script setup lang="ts">
+import type { ServicePlan } from "@/api";
 import { cn } from "@/lib/utils";
 
-const props = defineProps({
-  plans: { type: Array, required: true },
-  modelValue: { type: String, required: true },
-});
+const props = defineProps<{
+  plans: ServicePlan[];
+  modelValue: string;
+}>();
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits<{
+  (e: "update:modelValue", value: string): void;
+}>();
 </script>
 
 <template>
-  <div class="inline-flex flex-wrap rounded-sm border-2 border-border bg-muted p-1 gap-1">
+  <div class="inline-flex flex-wrap items-center gap-1 border-b border-border/70 pb-1">
     <button
       v-for="plan in plans"
       :key="plan.id"
       :class="cn(
-        'px-3 py-1.5 rounded-sm text-caption font-semibold border border-transparent transition-colors',
+        'px-2.5 py-1 text-body font-medium border-b-2 border-transparent transition-colors',
         modelValue === plan.id
-          ? 'bg-background text-foreground border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]'
-          : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+          ? 'text-primary border-primary'
+          : 'text-muted-foreground hover:text-foreground hover:border-border/70'
       )"
       @click="emit('update:modelValue', plan.id)"
     >

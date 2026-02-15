@@ -1,18 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
+import type { CountryPrice } from "@/api";
+import type { DisplayCurrency } from "@/composables/usePrices";
 import { Table, TableHeader, TableBody, TableRow, TableHead } from "@/components/ui/table";
 import PriceRow from "./PriceRow.vue";
 
-const props = defineProps({
-  prices: { type: Array, required: true },
-  selectedPlan: { type: String, required: true },
-  displayCurrency: { type: String, required: true },
-  baseCountryPrice: { type: Object, default: null },
-  serviceSlug: { type: String, required: true },
-});
+const props = defineProps<{
+  prices: CountryPrice[];
+  selectedPlan: string;
+  displayCurrency: DisplayCurrency;
+  baseCountryPrice: CountryPrice | null;
+  serviceSlug: string;
+}>();
 
 // 기준 국가(한국)의 환산 가격
-const baseConverted = computed(() => {
+const baseConverted = computed<number | null>(() => {
   if (!props.baseCountryPrice) return null;
   return props.baseCountryPrice.converted?.[props.selectedPlan]?.[props.displayCurrency] ?? null;
 });
@@ -24,15 +26,9 @@ const currencyLabel = computed(() =>
 
 <template>
   <div>
-    <!-- 결과 수 표시 -->
-    <p class="text-caption text-muted-foreground mb-3 px-1">
-      총 {{ prices.length }}개국
-    </p>
-
     <Table>
-      <TableHeader>
+      <TableHeader class="sticky top-0 z-10 bg-background">
         <TableRow>
-          <TableHead class="w-12 text-center">#</TableHead>
           <TableHead>국가</TableHead>
           <TableHead class="text-right hidden sm:table-cell">현지 가격</TableHead>
           <TableHead class="text-right">{{ currencyLabel }}</TableHead>
@@ -40,10 +36,9 @@ const currencyLabel = computed(() =>
         </TableRow>
       </TableHeader>
       <TableBody>
-        <template v-for="(item, index) in prices" :key="item.countryCode">
+        <template v-for="item in prices" :key="item.countryCode">
           <PriceRow
             :item="item"
-            :rank="index + 1"
             :selected-plan="selectedPlan"
             :display-currency="displayCurrency"
             :base-price="baseConverted"
