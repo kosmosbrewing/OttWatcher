@@ -263,8 +263,7 @@ ott-price-compare/
 ├── scripts/
 │   └── fetch-exchange-rates.ts           # 환율 갱신 스크립트
 │
-├── docker-compose.yml
-├── Dockerfile
+├── vercel.json
 └── README.md
 ```
 

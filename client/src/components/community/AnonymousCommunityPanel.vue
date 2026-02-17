@@ -6,6 +6,9 @@ const props = defineProps<{
   serviceSlug: string;
 }>();
 
+const COMMUNITY_SERVICE_SLUG =
+  import.meta.env.VITE_COMMUNITY_SERVICE_SLUG || "global-community";
+
 const posts = ref<CommunityPost[]>([]);
 const loading = ref(false);
 const submitting = ref(false);
@@ -25,12 +28,10 @@ function formatTime(iso: string | undefined): string {
 }
 
 async function loadPosts(): Promise<void> {
-  if (!props.serviceSlug) return;
-
   loading.value = true;
   error.value = "";
   try {
-    const response = await fetchCommunityPosts(props.serviceSlug, "ALL", 30);
+    const response = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", 30);
     posts.value = Array.isArray(response.posts) ? response.posts : [];
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : "커뮤니티 글을 불러오지 못했습니다.";
@@ -51,7 +52,7 @@ async function onSubmit(): Promise<void> {
   submitting.value = true;
   try {
     await submitCommunityPost({
-      serviceSlug: props.serviceSlug,
+      serviceSlug: COMMUNITY_SERVICE_SLUG,
       countryCode: "ALL",
       content: trimmed,
     });

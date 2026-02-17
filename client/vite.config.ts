@@ -19,8 +19,11 @@ export default defineConfig({
   },
   server: {
     port: 6102,
+    fs: {
+      allow: [path.resolve(__dirname, "..")],
+    },
     proxy: {
-      "/api": {
+      "/api/ottwatcher": {
         target: "http://localhost:6002",
         changeOrigin: true,
       },
