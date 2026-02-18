@@ -7,6 +7,7 @@ import { useSEO } from "@/composables/useSEO";
 import { formatNumber, countryFlag } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 const route = useRoute();
 const { services, loadServices } = useServices();
@@ -88,10 +89,7 @@ watch(serviceSlug, () => void loadTrendData());
 
 <template>
   <div class="container py-6">
-    <div v-if="loading" class="text-center py-20">
-      <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-body text-muted-foreground">트렌드 데이터를 불러오는 중...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="트렌드 데이터를 불러오는 중..." />
 
     <div v-else-if="error" class="text-center py-20">
       <p class="text-destructive text-body">{{ error }}</p>

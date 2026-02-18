@@ -8,6 +8,7 @@ import { fetchTrends, type TrendsResponse } from "@/api";
 import { formatNumber, countryFlag } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { LoadingSpinner } from "@/components/ui/loading";
 import PriceTable from "@/components/price/PriceTable.vue";
 import PlanSelector from "@/components/filter/PlanSelector.vue";
 import SortToggle from "@/components/filter/SortToggle.vue";
@@ -120,10 +121,7 @@ watch(
 <template>
   <div class="container py-6">
     <!-- 로딩 -->
-    <div v-if="loading" class="text-center py-20">
-      <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-body text-muted-foreground">가격 정보를 불러오는 중...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="가격 정보를 불러오는 중..." />
 
     <!-- 에러 -->
     <div v-else-if="error" class="text-center py-20">
@@ -187,7 +185,7 @@ watch(
               </RouterLink>
             </div>
             <CardContent>
-              <div v-if="trendLoading" class="text-caption text-muted-foreground">트렌드 데이터 로딩 중...</div>
+              <LoadingSpinner v-if="trendLoading" variant="dots" size="sm" :center="false" />
               <div v-else-if="trendData?.biggestDrops?.length">
                 <Table>
                   <TableHeader class="sticky top-0 z-10 bg-background">

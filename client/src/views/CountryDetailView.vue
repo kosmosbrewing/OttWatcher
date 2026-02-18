@@ -16,6 +16,7 @@ import {
 import { formatNumber, calcSavingsPercent, countryFlag } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { LoadingSpinner } from "@/components/ui/loading";
 import SavingsBadge from "@/components/price/SavingsBadge.vue";
 import { ArrowLeft } from "lucide-vue-next";
 
@@ -196,10 +197,7 @@ watch(
 <template>
   <div class="container py-8">
     <!-- 로딩 -->
-    <div v-if="loading" class="text-center py-20">
-      <div class="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-body text-muted-foreground">가격 정보를 불러오는 중...</p>
-    </div>
+    <LoadingSpinner v-if="loading" message="가격 정보를 불러오는 중..." />
 
     <!-- 에러 / 국가 없음 -->
     <div v-else-if="error || (!loading && !countryData)" class="text-center py-20">

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { fetchCommunityPosts, submitCommunityPost, type CommunityPost } from "@/api";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 const props = defineProps<{
   serviceSlug: string;
@@ -78,7 +79,7 @@ watch(
   <aside class="retro-panel overflow-hidden lg:sticky lg:top-20 lg:self-start">
     <div class="retro-panel-content space-y-2.5">
       <div class="max-h-[420px] overflow-y-auto pr-1">
-        <p v-if="loading" class="!text-xs text-muted-foreground">글을 불러오는 중...</p>
+        <LoadingSpinner v-if="loading" variant="dots" size="sm" :center="false" />
         <p v-else-if="error" class="!text-xs text-destructive">{{ error }}</p>
         <ul v-else-if="posts.length > 0" class="divide-y divide-border/60">
           <li
