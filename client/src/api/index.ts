@@ -9,6 +9,7 @@ import netflixHistory from "../../../data/history/netflix.json";
 import disneyPlusHistory from "../../../data/history/disney-plus.json";
 import amazonPrimeVideoHistory from "../../../data/history/amazon-prime-video.json";
 import spotifyHistory from "../../../data/history/spotify.json";
+import { apiRequest } from "@/lib/api";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -136,8 +137,6 @@ const COUNTRY_CODE_PATTERN = /^[A-Za-z]{2}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ALERT_STORAGE_KEY = "ottwatcher:alerts:v1";
-const OTTWATCHER_API_BASE = (import.meta.env.VITE_OTTWATCHER_API_BASE || "/api/ottwatcher")
-  .replace(/\/+$/, "");
 
 const pricesBySlug: Record<string, PricesResponse> = {
   "youtube-premium": youtubePremiumPrices as PricesResponse,
@@ -186,48 +185,6 @@ function normalizeCountryCode(value: string): string {
     throw new Error("입력값이 올바르지 않습니다.");
   }
   return normalized;
-}
-
-function resolveErrorMessage(
-  payload: unknown,
-  fallback = "요청 처리 중 오류가 발생했습니다."
-): string {
-  if (!isRecord(payload)) return fallback;
-  if (typeof payload.error === "string" && payload.error.trim()) return payload.error;
-  if (typeof payload.message === "string" && payload.message.trim()) {
-    return payload.message;
-  }
-  return fallback;
-}
-
-async function requestOttwatcherApi<T>(
-  pathname: string,
-  init?: RequestInit
-): Promise<T> {
-  const response = await fetch(`${OTTWATCHER_API_BASE}${pathname}`, {
-    ...init,
-    headers: {
-      ...(init?.headers || {}),
-      ...(init?.body ? { "Content-Type": "application/json" } : {}),
-    },
-  });
-
-  const text = await response.text();
-  let payload: unknown = null;
-
-  if (text) {
-    try {
-      payload = JSON.parse(text) as unknown;
-    } catch {
-      payload = { message: text };
-    }
-  }
-
-  if (!response.ok) {
-    throw new Error(resolveErrorMessage(payload));
-  }
-
-  return (payload as T) ?? ({} as T);
 }
 
 function readStoredAlerts(): AlertSubscription[] {
@@ -369,23 +326,53 @@ function buildCountryChanges(
   return timelineByCountry;
 }
 
-export function fetchServices(): Promise<ServicesResponse> {
-  return Promise.resolve(clone(servicesSeed as ServicesResponse));
-}
-
-export function fetchPrices(serviceSlug: string): Promise<PricesResponse> {
-  ensureValidSlug(serviceSlug);
-
-  const priceData = pricesBySlug[serviceSlug];
-  if (!priceData) {
-    throw new Error("해당 서비스의 가격 데이터를 찾을 수 없습니다.");
+export async function fetchServices(): Promise<ServicesResponse> {
+  try {
+    const payload = await apiRequest<ServicesResponse>("/services", {
+      cachePolicy: "services",
+    });
+    if (Array.isArray(payload.services) && payload.services.length > 0) {
+      return payload;
+    }
+  } catch {
+    // API 실패 시 정적 시드 데이터로 폴백
   }
 
-  return Promise.resolve(clone(priceData));
+  return clone(servicesSeed as ServicesResponse);
+}
+
+export async function fetchPrices(serviceSlug: string): Promise<PricesResponse> {
+  ensureValidSlug(serviceSlug);
+
+  try {
+    const payload = await apiRequest<PricesResponse>(`/prices/${serviceSlug}`, {
+      cachePolicy: "prices",
+    });
+    if (Array.isArray(payload.prices) && payload.prices.length > 0) {
+      return payload;
+    }
+  } catch {
+    // API 실패 시 정적 시드 데이터로 폴백
+  }
+
+  const fallback = pricesBySlug[serviceSlug];
+  if (!fallback) throw new Error("해당 서비스의 가격 데이터를 찾을 수 없습니다.");
+  return clone(fallback);
 }
 
 export async function fetchTrends(serviceSlug: string): Promise<TrendsResponse> {
   ensureValidSlug(serviceSlug);
+
+  try {
+    const payload = await apiRequest<TrendsResponse>(`/trends/${serviceSlug}`, {
+      cachePolicy: "trends",
+    });
+    if (payload && Array.isArray(payload.cheapest)) {
+      return payload;
+    }
+  } catch {
+    // API 실패 시 클라이언트 계산 방식으로 폴백
+  }
 
   const priceData = await fetchPrices(serviceSlug);
   if (!priceData.prices?.length) {
@@ -455,7 +442,7 @@ export async function fetchTrends(serviceSlug: string): Promise<TrendsResponse> 
   };
 }
 
-export function subscribePriceAlert(payload: JsonRecord): Promise<JsonRecord> {
+export async function subscribePriceAlert(payload: JsonRecord): Promise<JsonRecord> {
   const serviceSlug = typeof payload.serviceSlug === "string" ? payload.serviceSlug : "";
   const countryCode = typeof payload.countryCode === "string" ? payload.countryCode : "";
   const planId = typeof payload.planId === "string" ? payload.planId.trim() : "";
@@ -483,26 +470,41 @@ export function subscribePriceAlert(payload: JsonRecord): Promise<JsonRecord> {
     throw new Error("이메일 형식이 올바르지 않습니다.");
   }
 
-  const id = `alt_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-  const nextRecord: AlertSubscription = {
-    id,
-    createdAt: new Date().toISOString(),
-    status: "active",
-    serviceSlug,
-    countryCode: countryCode.toUpperCase(),
-    planId,
-    targetPriceKrw: targetPrice,
-    email,
-  };
+  try {
+    return await apiRequest<JsonRecord>("/alerts", {
+      method: "POST",
+      cachePolicy: "noCache",
+      body: JSON.stringify({
+        serviceSlug,
+        countryCode,
+        planId,
+        targetPriceKrw: targetPrice,
+        email,
+      }),
+    });
+  } catch {
+    // API 미가용 환경을 위한 로컬 폴백
+    const id = `alt_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+    const nextRecord: AlertSubscription = {
+      id,
+      createdAt: new Date().toISOString(),
+      status: "active",
+      serviceSlug,
+      countryCode: countryCode.toUpperCase(),
+      planId,
+      targetPriceKrw: targetPrice,
+      email,
+    };
 
-  const stored = readStoredAlerts();
-  stored.push(nextRecord);
-  writeStoredAlerts(stored);
+    const stored = readStoredAlerts();
+    stored.push(nextRecord);
+    writeStoredAlerts(stored);
 
-  return Promise.resolve({
-    id,
-    message: "가격 하락 알림(베타) 신청이 완료되었습니다.",
-  });
+    return {
+      id,
+      message: "가격 하락 알림(로컬 폴백) 신청이 완료되었습니다.",
+    };
+  }
 }
 
 export function fetchCommunityPosts(
@@ -523,9 +525,9 @@ export function fetchCommunityPosts(
     limit: String(normalizedLimit),
   });
 
-  return requestOttwatcherApi<CommunityPostsResponse>(
-    `/community?${params.toString()}`
-  );
+  return apiRequest<CommunityPostsResponse>(`/community?${params.toString()}`, {
+    cachePolicy: "community",
+  });
 }
 
 export function submitCommunityPost(payload: JsonRecord): Promise<JsonRecord> {
@@ -541,8 +543,9 @@ export function submitCommunityPost(payload: JsonRecord): Promise<JsonRecord> {
 
   const countryCode = normalizeCountryCode(rawCountryCode);
 
-  return requestOttwatcherApi<JsonRecord>("/community", {
+  return apiRequest<JsonRecord>("/community", {
     method: "POST",
+    cachePolicy: "noCache",
     body: JSON.stringify({
       serviceSlug,
       countryCode,

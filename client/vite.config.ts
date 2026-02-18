@@ -51,6 +51,9 @@ export default defineConfig({
             }
             return "libs";
           }
+          if (id.includes("/src/lib/api")) {
+            return "api";
+          }
         },
       },
     },

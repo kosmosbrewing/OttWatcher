@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { trackPageView } from "@/lib/analytics";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -64,6 +65,12 @@ router.beforeEach((to, _from, next) => {
   const title = typeof to.meta.title === "string" ? to.meta.title : "OTT 가격 비교";
   document.title = title;
   next();
+});
+
+router.afterEach((to, _from, failure) => {
+  if (failure) return;
+  const title = typeof to.meta.title === "string" ? to.meta.title : document.title;
+  trackPageView(to.fullPath, title);
 });
 
 export default router;

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import { Check, X, CheckCircle2, AlertTriangle } from "lucide-vue-next";
+import { Check, X, CheckCircle2, AlertTriangle, Info } from "lucide-vue-next";
 import { cn } from "@/lib/utils";
 
-type AlertType = "success" | "error";
+type AlertType = "success" | "error" | "warning" | "info";
 type ConfirmVariant = "success" | "destructive";
 
 const props = withDefaults(
@@ -142,6 +142,8 @@ onUnmounted(() => {
           <template v-else>
             <slot>
               <Check v-if="type === 'success'" class="w-4 h-4" />
+              <AlertTriangle v-else-if="type === 'warning'" class="w-4 h-4" />
+              <Info v-else-if="type === 'info'" class="w-4 h-4" />
               <X v-else class="w-4 h-4" />
               <p class="text-body font-medium">{{ message }}</p>
             </slot>
