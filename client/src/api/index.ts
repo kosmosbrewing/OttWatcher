@@ -510,7 +510,11 @@ export async function subscribePriceAlert(payload: JsonRecord): Promise<JsonReco
 export function fetchCommunityPosts(
   serviceSlug: string,
   countryCode = "ALL",
-  limit = 30
+  limit = 30,
+  options?: {
+    skipCache?: boolean;
+    forceRefresh?: boolean;
+  }
 ): Promise<CommunityPostsResponse> {
   ensureValidSlug(serviceSlug);
 
@@ -524,9 +528,14 @@ export function fetchCommunityPosts(
     countryCode: normalizedCountryCode,
     limit: String(normalizedLimit),
   });
+  if (options?.forceRefresh) {
+    params.set("_ts", String(Date.now()));
+  }
 
   return apiRequest<CommunityPostsResponse>(`/community?${params.toString()}`, {
     cachePolicy: "community",
+    skipCache: options?.skipCache,
+    cache: options?.skipCache ? "no-store" : undefined,
   });
 }
 

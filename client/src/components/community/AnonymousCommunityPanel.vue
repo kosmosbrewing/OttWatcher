@@ -28,11 +28,14 @@ function formatTime(iso: string | undefined): string {
   }).format(new Date(iso));
 }
 
-async function loadPosts(): Promise<void> {
+async function loadPosts(forceRefresh = false): Promise<void> {
   loading.value = true;
   error.value = "";
   try {
-    const response = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", 30);
+    const response = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", 30, {
+      skipCache: forceRefresh,
+      forceRefresh,
+    });
     posts.value = Array.isArray(response.posts) ? response.posts : [];
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : "커뮤니티 글을 불러오지 못했습니다.";
@@ -58,7 +61,7 @@ async function onSubmit(): Promise<void> {
       content: trimmed,
     });
     content.value = "";
-    await loadPosts();
+    await loadPosts(true);
   } catch (e: unknown) {
     formError.value = e instanceof Error ? e.message : "등록 중 오류가 발생했습니다.";
   } finally {
