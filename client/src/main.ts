@@ -3,7 +3,7 @@ import { createHead } from "@vueuse/head";
 import App from "./App.vue";
 import router from "./router";
 import "./assets/css/main.css";
-import { initAnalytics } from "./lib/analytics";
+import { initAnalytics, trackPageView } from "./lib/analytics";
 
 async function bootstrap(): Promise<void> {
   const app = createApp(App);
@@ -15,6 +15,10 @@ async function bootstrap(): Promise<void> {
 
   try {
     await router.isReady();
+    const currentRoute = router.currentRoute.value;
+    const routeTitle =
+      typeof currentRoute.meta.title === "string" ? currentRoute.meta.title : document.title;
+    trackPageView(currentRoute.fullPath, routeTitle);
   } catch {
     // 라우터 준비 실패 시에도 앱은 마운트
   }

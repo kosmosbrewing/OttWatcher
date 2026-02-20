@@ -9,6 +9,7 @@ declare global {
 }
 
 const GA_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
+const GA_DEBUG_MODE = String(import.meta.env.VITE_GA_DEBUG || "").toLowerCase() === "true";
 
 function normalizeMeasurementId(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -28,6 +29,7 @@ const GA_MEASUREMENT_ID = normalizeMeasurementId(
   import.meta.env.VITE_GA_MEASUREMENT_ID || import.meta.env.VITE_GA4_MEASUREMENT_ID || ""
 );
 let gaWarningPrinted = false;
+let lastTrackedPath = "";
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
@@ -104,10 +106,15 @@ export function trackPageView(path: string, title?: string): void {
   if (!window.__ga4Initialized) initAnalytics();
   if (!window.gtag) return;
 
+  const normalizedPath = path || `${window.location.pathname}${window.location.search}`;
+  if (normalizedPath === lastTrackedPath) return;
+  lastTrackedPath = normalizedPath;
+
   window.gtag("event", "page_view", {
     page_title: title || document.title,
-    page_path: path,
-    page_location: `${window.location.origin}${path}`,
+    page_path: normalizedPath,
+    page_location: `${window.location.origin}${normalizedPath}`,
+    ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
   });
 }
 
@@ -115,5 +122,8 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>):
   if (!isBrowser() || !canTrackAnalytics()) return;
   if (!window.__ga4Initialized) initAnalytics();
   if (!window.gtag) return;
-  window.gtag("event", eventName, params);
+  window.gtag("event", eventName, {
+    ...(params || {}),
+    ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
+  });
 }
