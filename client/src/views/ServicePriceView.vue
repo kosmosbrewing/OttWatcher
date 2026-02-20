@@ -232,7 +232,7 @@ const seoJsonLd = computed<Record<string, unknown> | undefined>(() => {
 useSEO({
   title: pageTitle,
   description: pageDescription,
-  ogImage: `${siteUrl}/dist/og.png`,
+  ogImage: `${siteUrl}/og-image.png`,
   jsonLd: seoJsonLd,
 });
 

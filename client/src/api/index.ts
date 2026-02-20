@@ -1,7 +1,6 @@
 import servicesSeed from "../../../data/services.json";
 import youtubePremiumPrices from "../../../data/prices/youtube-premium.json";
 import youtubePremiumHistory from "../../../data/history/youtube-premium.json";
-import { apiRequest } from "@/lib/api";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -129,6 +128,9 @@ const COUNTRY_CODE_PATTERN = /^[A-Za-z]{2}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ALERT_STORAGE_KEY = "ottwatcher:alerts:v1";
+const API_BASE = (
+  import.meta.env.VITE_OTTWATCHER_API_BASE || "/api/ottwatcher"
+).replace(/\/+$/, "");
 
 const pricesBySlug: Record<string, PricesResponse> = {
   "youtube-premium": youtubePremiumPrices as PricesResponse,
@@ -310,34 +312,69 @@ function buildCountryChanges(
   return timelineByCountry;
 }
 
-export async function fetchServices(): Promise<ServicesResponse> {
-  try {
-    const payload = await apiRequest<ServicesResponse>("/services", {
-      cachePolicy: "services",
-    });
-    if (Array.isArray(payload.services) && payload.services.length > 0) {
-      return payload;
-    }
-  } catch {
-    // API 실패 시 정적 시드 데이터로 폴백
+function normalizeCommunityPosts(value: unknown): CommunityPost[] {
+  if (!isRecord(value) || !Array.isArray(value.posts)) {
+    return [];
   }
 
+  return value.posts
+    .filter(isRecord)
+    .map((post) => ({
+      id: typeof post.id === "string" || typeof post.id === "number" ? post.id : "",
+      nickname: typeof post.nickname === "string" ? post.nickname : "익명 유저",
+      content: typeof post.content === "string" ? post.content : "",
+      createdAt: typeof post.createdAt === "string" ? post.createdAt : "",
+      serviceSlug: typeof post.serviceSlug === "string" ? post.serviceSlug : undefined,
+      countryCode: typeof post.countryCode === "string" ? post.countryCode : undefined,
+    }))
+    .filter((post) => post.id && post.content && post.createdAt);
+}
+
+function extractApiErrorMessage(payload: unknown): string | null {
+  if (!isRecord(payload)) return null;
+  if (typeof payload.error === "string" && payload.error.trim()) return payload.error;
+  if (typeof payload.message === "string" && payload.message.trim()) return payload.message;
+  return null;
+}
+
+async function requestCommunityApi<T>(
+  path: string,
+  init: RequestInit
+): Promise<T> {
+  const headers = new Headers(init.headers);
+  headers.set("Accept", "application/json");
+  if (init.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(`${API_BASE}/community${path}`, {
+    ...init,
+    headers,
+    credentials: "include",
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      extractApiErrorMessage(payload) || "커뮤니티 요청 처리 중 오류가 발생했습니다."
+    );
+  }
+
+  return payload as T;
+}
+
+export async function fetchServices(): Promise<ServicesResponse> {
   return clone(servicesSeed as ServicesResponse);
 }
 
 export async function fetchPrices(serviceSlug: string): Promise<PricesResponse> {
   ensureValidSlug(serviceSlug);
-
-  try {
-    const payload = await apiRequest<PricesResponse>(`/prices/${serviceSlug}`, {
-      cachePolicy: "prices",
-    });
-    if (Array.isArray(payload.prices) && payload.prices.length > 0) {
-      return payload;
-    }
-  } catch {
-    // API 실패 시 정적 시드 데이터로 폴백
-  }
 
   const fallback = pricesBySlug[serviceSlug];
   if (!fallback) throw new Error("해당 서비스의 가격 데이터를 찾을 수 없습니다.");
@@ -346,17 +383,6 @@ export async function fetchPrices(serviceSlug: string): Promise<PricesResponse> 
 
 export async function fetchTrends(serviceSlug: string): Promise<TrendsResponse> {
   ensureValidSlug(serviceSlug);
-
-  try {
-    const payload = await apiRequest<TrendsResponse>(`/trends/${serviceSlug}`, {
-      cachePolicy: "trends",
-    });
-    if (payload && Array.isArray(payload.cheapest)) {
-      return payload;
-    }
-  } catch {
-    // API 실패 시 클라이언트 계산 방식으로 폴백
-  }
 
   const priceData = await fetchPrices(serviceSlug);
   if (!priceData.prices?.length) {
@@ -454,41 +480,26 @@ export async function subscribePriceAlert(payload: JsonRecord): Promise<JsonReco
     throw new Error("이메일 형식이 올바르지 않습니다.");
   }
 
-  try {
-    return await apiRequest<JsonRecord>("/alerts", {
-      method: "POST",
-      cachePolicy: "noCache",
-      body: JSON.stringify({
-        serviceSlug,
-        countryCode,
-        planId,
-        targetPriceKrw: targetPrice,
-        email,
-      }),
-    });
-  } catch {
-    // API 미가용 환경을 위한 로컬 폴백
-    const id = `alt_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-    const nextRecord: AlertSubscription = {
-      id,
-      createdAt: new Date().toISOString(),
-      status: "active",
-      serviceSlug,
-      countryCode: countryCode.toUpperCase(),
-      planId,
-      targetPriceKrw: targetPrice,
-      email,
-    };
+  const id = `alt_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  const nextRecord: AlertSubscription = {
+    id,
+    createdAt: new Date().toISOString(),
+    status: "active",
+    serviceSlug,
+    countryCode: countryCode.toUpperCase(),
+    planId,
+    targetPriceKrw: targetPrice,
+    email,
+  };
 
-    const stored = readStoredAlerts();
-    stored.push(nextRecord);
-    writeStoredAlerts(stored);
+  const stored = readStoredAlerts();
+  stored.push(nextRecord);
+  writeStoredAlerts(stored);
 
-    return {
-      id,
-      message: "가격 하락 알림(로컬 폴백) 신청이 완료되었습니다.",
-    };
-  }
+  return {
+    id,
+    message: "가격 하락 알림 신청이 완료되었습니다.",
+  };
 }
 
 export function fetchCommunityPosts(
@@ -507,23 +518,20 @@ export function fetchCommunityPosts(
     ? Math.min(100, Math.max(1, Math.floor(limit)))
     : 30;
 
-  const params = new URLSearchParams({
+  const query = new URLSearchParams({
     serviceSlug,
     countryCode: normalizedCountryCode,
     limit: String(normalizedLimit),
   });
-  if (options?.forceRefresh) {
-    params.set("_ts", String(Date.now()));
-  }
 
-  return apiRequest<CommunityPostsResponse>(`/community?${params.toString()}`, {
-    cachePolicy: "community",
-    skipCache: options?.skipCache,
-    cache: options?.skipCache ? "no-store" : undefined,
-  });
+  return requestCommunityApi<CommunityPostsResponse>(`?${query.toString()}`, {
+    method: "GET",
+    cache:
+      options?.skipCache || options?.forceRefresh ? "no-store" : "default",
+  }).then((payload) => ({ posts: normalizeCommunityPosts(payload) }));
 }
 
-export function submitCommunityPost(payload: JsonRecord): Promise<JsonRecord> {
+export async function submitCommunityPost(payload: JsonRecord): Promise<JsonRecord> {
   const serviceSlug = typeof payload.serviceSlug === "string" ? payload.serviceSlug : "";
   const rawCountryCode = typeof payload.countryCode === "string" ? payload.countryCode : "ALL";
   const content = typeof payload.content === "string" ? payload.content.trim() : "";
@@ -535,10 +543,8 @@ export function submitCommunityPost(payload: JsonRecord): Promise<JsonRecord> {
   }
 
   const countryCode = normalizeCountryCode(rawCountryCode);
-
-  return apiRequest<JsonRecord>("/community", {
+  return requestCommunityApi<JsonRecord>("", {
     method: "POST",
-    cachePolicy: "noCache",
     body: JSON.stringify({
       serviceSlug,
       countryCode,

@@ -13,7 +13,7 @@ useSEO({
   title: "유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위",
   description:
     "유튜브 프리미엄 국가별 구독료를 한눈에 비교하세요. 현재 환율 기준으로 한국 대비 절약률과 최저가 국가 순위를 확인할 수 있습니다.",
-  ogImage: `${siteUrl}/dist/og.png`,
+  ogImage: `${siteUrl}/og-image.png`,
   jsonLd: {
     "@context": "https://schema.org",
     "@type": "WebSite",
