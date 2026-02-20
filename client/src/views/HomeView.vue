@@ -4,12 +4,28 @@ import { RouterLink } from "vue-router";
 import { useServices } from "@/composables/useServices";
 import { useSEO } from "@/composables/useSEO";
 import { Card, CardContent } from "@/components/ui/card";
+import { getSiteUrl } from "@/lib/site";
 
 const { services, loading, error, loadServices } = useServices();
+const siteUrl = getSiteUrl();
 
 useSEO({
-  title: "OTT 가격 비교 | 국가별 구독 요금 한눈에",
-  description: "유튜브 프리미엄, 넷플릭스 등 OTT 서비스의 국가별 구독 요금을 비교하세요. 가장 저렴한 나라를 찾아드립니다.",
+  title: "유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위",
+  description:
+    "유튜브 프리미엄 국가별 구독료를 한눈에 비교하세요. 현재 환율 기준으로 한국 대비 절약률과 최저가 국가 순위를 확인할 수 있습니다.",
+  ogImage: `${siteUrl}/dist/og.png`,
+  jsonLd: {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "유튜브 프리미엄 가격 비교",
+    url: siteUrl,
+    description: "유튜브 프리미엄 국가별 구독료 최저가 비교",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
 });
 
 onMounted(() => {
@@ -22,7 +38,7 @@ onMounted(() => {
     <div class="third-rate-board">
       <section class="retro-panel overflow-hidden mb-4">
         <div class="retro-titlebar">
-          <h1 class="retro-title">OTT 서비스 가격 비교</h1>
+          <h1 class="retro-title">유튜브 프리미엄 국가별 최저가 비교</h1>
           <span class="retro-kbd">HOME</span>
         </div>
       </section>

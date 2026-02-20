@@ -26,7 +26,7 @@
         { "id": "student", "name": "프리미엄", "nameEn": "Premium" }
       ],
       "dataFile": "netflix.json",
-      "active": true
+      "active": false
     },
     {
       "id": "disney-plus",
@@ -40,7 +40,7 @@
         { "id": "student", "name": "연간(월환산)", "nameEn": "Annual (Monthly)" }
       ],
       "dataFile": "disney-plus.json",
-      "active": true
+      "active": false
     },
     {
       "id": "amazon-prime-video",
@@ -69,7 +69,7 @@
         { "id": "student", "name": "학생", "nameEn": "Student" }
       ],
       "dataFile": "spotify.json",
-      "active": true
+      "active": false
     }
   ]
 }

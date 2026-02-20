@@ -4,8 +4,9 @@ import { trackPageView } from "@/lib/analytics";
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    name: "HomeRedirect",
-    redirect: "/youtube-premium",
+    name: "Home",
+    component: () => import("@/views/HomeView.vue"),
+    meta: { title: "유튜브 프리미엄 국가별 최저가 비교" },
   },
   // 정적 라우트를 동적 라우트보다 먼저 배치
   {
@@ -35,13 +36,13 @@ const routes: RouteRecordRaw[] = [
     path: "/:serviceSlug/trends",
     name: "ServiceTrends",
     component: () => import("@/views/TrendsView.vue"),
-    meta: { title: "가격 트렌드" },
+    meta: { title: "유튜브 프리미엄 가격 트렌드" },
   },
   {
     path: "/:serviceSlug",
     name: "ServicePrice",
     component: () => import("@/views/ServicePriceView.vue"),
-    meta: { title: "가격 비교" },
+    meta: { title: "유튜브 프리미엄 가격 비교" },
   },
   {
     path: "/:serviceSlug/:countryCode",

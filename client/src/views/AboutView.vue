@@ -3,8 +3,8 @@ import { useSEO } from "@/composables/useSEO";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 useSEO({
-  title: "소개 | OTT 가격 비교",
-  description: "OTT Price Compare 서비스 소개. 전 세계 OTT 구독 서비스의 국가별 가격을 비교하는 사이트입니다.",
+  title: "소개 | 유튜브 프리미엄 가격 비교",
+  description: "유튜브 프리미엄 가격 비교 서비스의 데이터 출처와 갱신 주기를 안내합니다.",
 });
 </script>
 
@@ -17,27 +17,40 @@ useSEO({
       </div>
       <div class="retro-panel-content">
         <p class="text-body text-muted-foreground">
-          OTT Price Compare의 운영 원칙과 데이터 수집 방식을 안내합니다.
+          유튜브 프리미엄 가격 비교 서비스의 운영 원칙과 데이터 수집 방식을 안내합니다.
         </p>
       </div>
     </section>
 
     <Card class="mb-6 retro-panel">
       <CardHeader>
-        <CardTitle>OTT Price Compare란?</CardTitle>
+        <CardTitle>유튜브 프리미엄 가격 비교란?</CardTitle>
       </CardHeader>
       <CardContent>
         <p class="text-body leading-relaxed mb-4">
-          OTT Price Compare는 유튜브 프리미엄, 넷플릭스 등 주요 OTT 구독 서비스의
-          국가별 구독 요금을 한눈에 비교할 수 있는 서비스입니다.
+          이 서비스는 유튜브 프리미엄 구독 요금의 국가별 가격을 비교해
+          최저가 국가와 한국 대비 절약률을 빠르게 확인할 수 있도록 제공합니다.
         </p>
         <p class="text-body leading-relaxed mb-4">
-          각 나라의 현지 통화 가격과 함께 USD, KRW로 환산된 가격을 제공하며,
-          한국 기준 절약률도 확인할 수 있습니다.
+          각 나라의 현지 통화 가격과 함께 USD, KRW 환산 가격을 제공하며
+          현재 환율 기준 순위를 확인할 수 있습니다.
         </p>
         <p class="text-body leading-relaxed">
-          가격 정보는 각 서비스의 공식 홈페이지를 기반으로 수집되며,
-          환율은 주기적으로 갱신됩니다.
+          가격 정보는 유튜브 프리미엄 공식 사이트 기준으로 관리됩니다.
+        </p>
+      </CardContent>
+    </Card>
+
+    <Card class="mb-6 retro-panel">
+      <CardHeader>
+        <CardTitle>데이터 출처 및 갱신 주기</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p class="text-body leading-relaxed mb-3">
+          환율 데이터: Frankfurter.app API를 사용하며, 매일 자동 갱신됩니다.
+        </p>
+        <p class="text-body leading-relaxed">
+          가격 데이터: 유튜브 프리미엄 공식 사이트 기준으로 주 1회 업데이트됩니다.
         </p>
       </CardContent>
     </Card>

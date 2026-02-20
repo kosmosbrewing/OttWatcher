@@ -1,14 +1,6 @@
 import servicesSeed from "../../../data/services.json";
 import youtubePremiumPrices from "../../../data/prices/youtube-premium.json";
-import netflixPrices from "../../../data/prices/netflix.json";
-import disneyPlusPrices from "../../../data/prices/disney-plus.json";
-import amazonPrimeVideoPrices from "../../../data/prices/amazon-prime-video.json";
-import spotifyPrices from "../../../data/prices/spotify.json";
 import youtubePremiumHistory from "../../../data/history/youtube-premium.json";
-import netflixHistory from "../../../data/history/netflix.json";
-import disneyPlusHistory from "../../../data/history/disney-plus.json";
-import amazonPrimeVideoHistory from "../../../data/history/amazon-prime-video.json";
-import spotifyHistory from "../../../data/history/spotify.json";
 import { apiRequest } from "@/lib/api";
 
 export type JsonRecord = Record<string, unknown>;
@@ -140,18 +132,10 @@ const ALERT_STORAGE_KEY = "ottwatcher:alerts:v1";
 
 const pricesBySlug: Record<string, PricesResponse> = {
   "youtube-premium": youtubePremiumPrices as PricesResponse,
-  netflix: netflixPrices as PricesResponse,
-  "disney-plus": disneyPlusPrices as PricesResponse,
-  "amazon-prime-video": amazonPrimeVideoPrices as PricesResponse,
-  spotify: spotifyPrices as PricesResponse,
 };
 
 const historyBySlug: Record<string, HistoryPayload> = {
   "youtube-premium": youtubePremiumHistory as HistoryPayload,
-  netflix: netflixHistory as HistoryPayload,
-  "disney-plus": disneyPlusHistory as HistoryPayload,
-  "amazon-prime-video": amazonPrimeVideoHistory as HistoryPayload,
-  spotify: spotifyHistory as HistoryPayload,
 };
 
 let memoryAlerts: AlertSubscription[] = [];
