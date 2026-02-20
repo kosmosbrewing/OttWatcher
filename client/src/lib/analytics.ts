@@ -9,7 +9,7 @@ declare global {
 }
 
 const GA_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
-const GA_DEBUG_MODE = String(import.meta.env.VITE_GA_DEBUG || "").toLowerCase() === "true";
+const GA_DEBUG_MODE = true;
 
 function normalizeMeasurementId(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -110,20 +110,38 @@ export function trackPageView(path: string, title?: string): void {
   if (normalizedPath === lastTrackedPath) return;
   lastTrackedPath = normalizedPath;
 
-  window.gtag("event", "page_view", {
+  const payload = {
     page_title: title || document.title,
     page_path: normalizedPath,
     page_location: `${window.location.origin}${normalizedPath}`,
     ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
-  });
+  };
+  window.gtag("event", "page_view", payload);
+
+  if (GA_DEBUG_MODE) {
+    console.info("[ga4] page_view", {
+      measurementId: GA_MEASUREMENT_ID,
+      ...payload,
+    });
+  }
 }
 
 export function trackEvent(eventName: string, params?: Record<string, unknown>): void {
   if (!isBrowser() || !canTrackAnalytics()) return;
   if (!window.__ga4Initialized) initAnalytics();
   if (!window.gtag) return;
-  window.gtag("event", eventName, {
+
+  const payload = {
     ...(params || {}),
     ...(GA_DEBUG_MODE ? { debug_mode: true } : {}),
-  });
+  };
+  window.gtag("event", eventName, payload);
+
+  if (GA_DEBUG_MODE) {
+    console.info("[ga4] event", {
+      measurementId: GA_MEASUREMENT_ID,
+      eventName,
+      ...payload,
+    });
+  }
 }
