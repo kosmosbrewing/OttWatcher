@@ -25,8 +25,7 @@ const config: Config = {
           ...fontFamily.sans,
         ],
         title: [
-          "BMEuljiro10yearslater",
-          "Pretendard",
+          "NeoDungGeunMo", "Pretendard",
           "Noto Sans KR",
           ...fontFamily.sans,
         ],

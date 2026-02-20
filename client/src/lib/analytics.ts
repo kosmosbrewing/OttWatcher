@@ -9,7 +9,7 @@ declare global {
 }
 
 const GA_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
-const GA_DEBUG_MODE = true;
+const GA_DEBUG_MODE = import.meta.env.VITE_GA_DEBUG === "true";
 
 function normalizeMeasurementId(value: unknown): string {
   if (typeof value !== "string") return "";
@@ -38,9 +38,11 @@ function isBrowser(): boolean {
 function ensureGlobalGtag(): void {
   window.dataLayer = window.dataLayer || [];
   if (!window.gtag) {
-    window.gtag = (...args: unknown[]) => {
-      window.dataLayer.push(args);
-    };
+    window.gtag = function gtagShim(..._args: unknown[]) {
+      // Keep the official gtag bootstrap behavior:
+      // function gtag(){dataLayer.push(arguments);}
+      window.dataLayer.push(arguments);
+    } as GtagFn;
   }
 }
 
@@ -52,6 +54,11 @@ function injectGaScript(measurementId: string): void {
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
   script.setAttribute("data-ga4-id", measurementId);
+  script.onload = () => {
+    if (GA_DEBUG_MODE) {
+      console.info("[ga4] gtag script loaded", { measurementId });
+    }
+  };
   script.onerror = () => {
     if (!gaWarningPrinted) {
       console.warn("[ga4] gtag script load failed. Check blocker/CSP/network.");
@@ -121,6 +128,7 @@ export function trackPageView(path: string, title?: string): void {
   if (GA_DEBUG_MODE) {
     console.info("[ga4] page_view", {
       measurementId: GA_MEASUREMENT_ID,
+      queueSize: window.dataLayer?.length || 0,
       ...payload,
     });
   }
@@ -141,6 +149,7 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>):
     console.info("[ga4] event", {
       measurementId: GA_MEASUREMENT_ID,
       eventName,
+      queueSize: window.dataLayer?.length || 0,
       ...payload,
     });
   }
