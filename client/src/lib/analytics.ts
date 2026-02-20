@@ -8,8 +8,26 @@ declare global {
   }
 }
 
-const GA_MEASUREMENT_ID =
-  import.meta.env.VITE_GA_MEASUREMENT_ID || import.meta.env.VITE_GA4_MEASUREMENT_ID || "";
+const GA_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
+
+function normalizeMeasurementId(value: unknown): string {
+  if (typeof value !== "string") return "";
+
+  let normalized = value.trim();
+  if (
+    (normalized.startsWith("\"") && normalized.endsWith("\"")) ||
+    (normalized.startsWith("'") && normalized.endsWith("'"))
+  ) {
+    normalized = normalized.slice(1, -1).trim();
+  }
+
+  return normalized.toUpperCase();
+}
+
+const GA_MEASUREMENT_ID = normalizeMeasurementId(
+  import.meta.env.VITE_GA_MEASUREMENT_ID || import.meta.env.VITE_GA4_MEASUREMENT_ID || ""
+);
+let gaWarningPrinted = false;
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
@@ -32,11 +50,39 @@ function injectGaScript(measurementId: string): void {
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
   script.setAttribute("data-ga4-id", measurementId);
+  script.onerror = () => {
+    if (!gaWarningPrinted) {
+      console.warn("[ga4] gtag script load failed. Check blocker/CSP/network.");
+      gaWarningPrinted = true;
+    }
+  };
   document.head.appendChild(script);
 }
 
+function canTrackAnalytics(): boolean {
+  if (!GA_MEASUREMENT_ID) {
+    if (!gaWarningPrinted) {
+      console.warn(
+        "[ga4] measurement id missing. Set VITE_GA_MEASUREMENT_ID in Vercel/Env."
+      );
+      gaWarningPrinted = true;
+    }
+    return false;
+  }
+
+  if (!GA_MEASUREMENT_ID_PATTERN.test(GA_MEASUREMENT_ID)) {
+    if (!gaWarningPrinted) {
+      console.warn(`[ga4] invalid measurement id: "${GA_MEASUREMENT_ID}"`);
+      gaWarningPrinted = true;
+    }
+    return false;
+  }
+
+  return true;
+}
+
 export function initAnalytics(): boolean {
-  if (!isBrowser() || !GA_MEASUREMENT_ID) return false;
+  if (!isBrowser() || !canTrackAnalytics()) return false;
   if (window.__ga4Initialized) return true;
 
   injectGaScript(GA_MEASUREMENT_ID);
@@ -54,7 +100,7 @@ export function initAnalytics(): boolean {
 }
 
 export function trackPageView(path: string, title?: string): void {
-  if (!isBrowser() || !GA_MEASUREMENT_ID) return;
+  if (!isBrowser() || !canTrackAnalytics()) return;
   if (!window.__ga4Initialized) initAnalytics();
   if (!window.gtag) return;
 
@@ -66,7 +112,7 @@ export function trackPageView(path: string, title?: string): void {
 }
 
 export function trackEvent(eventName: string, params?: Record<string, unknown>): void {
-  if (!isBrowser() || !GA_MEASUREMENT_ID) return;
+  if (!isBrowser() || !canTrackAnalytics()) return;
   if (!window.__ga4Initialized) initAnalytics();
   if (!window.gtag) return;
   window.gtag("event", eventName, params);
