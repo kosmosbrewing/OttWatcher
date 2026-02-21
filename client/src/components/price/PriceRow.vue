@@ -2,17 +2,20 @@
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
 import type { CountryPrice } from "@/api";
-import type { DisplayCurrency } from "@/composables/usePrices";
+import type { SortOrder } from "@/composables/usePrices";
 import { TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import SavingsBadge from "./SavingsBadge.vue";
 import { formatNumber, countryFlag } from "@/lib/utils";
 
 const props = defineProps<{
   item: CountryPrice;
   selectedPlan: string;
-  displayCurrency: DisplayCurrency;
-  basePrice: number | null;
+  baseKrw: number | null;
   serviceSlug: string;
+  rank: number;
+  isBase: boolean;
+  sortOrder: SortOrder;
 }>();
 
 // 현지 통화 가격
@@ -22,21 +25,15 @@ const localPrice = computed(() => {
   return { amount: plan.monthly, currency: props.item.currency };
 });
 
-// 환산 가격 (KRW 또는 USD)
-const convertedPrice = computed<number | null>(() => {
-  return props.item.converted?.[props.selectedPlan]?.[props.displayCurrency] ?? null;
-});
+// USD 환산가
+const usdPrice = computed<number | null>(() =>
+  props.item.converted?.[props.selectedPlan]?.usd ?? null
+);
 
-function formatDisplayPrice(value: number | null): string {
-  if (value == null) return "-";
-  if (props.displayCurrency === "krw") {
-    return `₩${formatNumber(Math.round(value))}`;
-  }
-  return `$${value.toFixed(2)}`;
-}
-
-// 환산 가격 포맷
-const formattedConverted = computed(() => formatDisplayPrice(convertedPrice.value));
+// KRW 환산가
+const krwPrice = computed<number | null>(() =>
+  props.item.converted?.[props.selectedPlan]?.krw ?? null
+);
 
 // 현지 통화 포맷
 const formattedLocal = computed(() => {
@@ -44,39 +41,70 @@ const formattedLocal = computed(() => {
   return `${formatNumber(localPrice.value.amount)} ${localPrice.value.currency}`;
 });
 
-// 국기 이모지
+// USD 포맷
+const formattedUsd = computed(() => {
+  if (usdPrice.value == null) return "-";
+  return `$${usdPrice.value.toFixed(2)}`;
+});
+
+// KRW 포맷
+const formattedKrw = computed(() => {
+  if (krwPrice.value == null) return "-";
+  return `₩${formatNumber(Math.round(krwPrice.value))}`;
+});
+
 const flag = computed(() => countryFlag(props.item.countryCode));
 </script>
 
 <template>
-  <TableRow class="group">
+  <TableRow
+    class="group/price-row hover:bg-primary/10"
+    :class="isBase ? 'bg-accent/40' : ''"
+  >
     <!-- 국가 -->
     <TableCell>
       <RouterLink
         :to="`/${serviceSlug}/${item.countryCode.toLowerCase()}`"
-        class="inline-flex items-center gap-2 hover:text-primary transition-colors font-semibold"
+        class="inline-flex items-center gap-2 transition-colors font-semibold group-hover/price-row:text-primary"
       >
+        <!-- 순번: asc 1~3위는 메달, 나머지는 숫자 -->
+        <span v-if="sortOrder === 'asc' && rank === 1" class="text-body shrink-0 mr-1" title="1위">🥇</span>
+        <span v-else-if="sortOrder === 'asc' && rank === 2" class="text-body shrink-0 mr-1" title="2위">🥈</span>
+        <span v-else-if="sortOrder === 'asc' && rank === 3" class="text-body shrink-0 mr-1" title="3위">🥉</span>
+        <span v-else class="text-[0.72rem] text-muted-foreground tabular-nums shrink-0 w-5 text-right mr-1">#{{ rank }}</span>
+        <!-- 국기는 항상 표시 -->
         <span class="text-body">{{ flag }}</span>
-        <span class="text-body">{{ item.country }}</span>
+        <span class="text-caption">{{ item.country }}</span>
+        <span v-if="isBase" class="text-[0.62rem] font-bold text-muted-foreground border border-border/60 px-1 py-0.5 leading-none">내 요금</span>
       </RouterLink>
     </TableCell>
 
-    <!-- 현지 가격 -->
-    <TableCell class="text-right text-caption text-muted-foreground tabular-nums hidden sm:table-cell">
+    <!-- 현지 가격 (데스크톱) -->
+    <TableCell class="text-right text-tiny text-muted-foreground/70 tabular-nums hidden sm:table-cell w-[116px]">
       {{ formattedLocal }}
     </TableCell>
 
-    <!-- 환산 가격 -->
-    <TableCell class="text-right font-semibold text-body tabular-nums">
-      {{ formattedConverted }}
+    <!-- USD 환산가 (데스크톱) -->
+    <TableCell class="text-right text-tiny text-muted-foreground/70 tabular-nums hidden sm:table-cell w-[64px]">
+      {{ formattedUsd }}
+    </TableCell>
+
+    <!-- KRW 환산가 -->
+    <TableCell class="text-right font-semibold text-body tabular-nums w-[100px]">
+      {{ formattedKrw }}
     </TableCell>
 
     <!-- 절약률 -->
-    <TableCell class="text-right">
+    <TableCell class="text-right w-[64px]">
+      <Badge
+        v-if="isBase"
+        variant="neutral"
+        class="h-5 w-[50px] justify-center px-0 py-0 text-[0.84rem] font-bold leading-none !text-white"
+      >기준</Badge>
       <SavingsBadge
-        v-if="basePrice != null && convertedPrice != null"
-        :price="convertedPrice"
-        :base-price="basePrice"
+        v-else-if="baseKrw != null && krwPrice != null"
+        :price="krwPrice"
+        :base-price="baseKrw"
       />
     </TableCell>
   </TableRow>

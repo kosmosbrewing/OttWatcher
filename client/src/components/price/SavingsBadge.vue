@@ -12,9 +12,11 @@ const percent = computed(() => calcSavingsPercent(props.price, props.basePrice))
 
 // 양수 = 절약, 음수 = 더 비쌈
 const label = computed(() => {
-  if (percent.value > 0) return `-${percent.value}%`;
-  if (percent.value < 0) return `+${Math.abs(percent.value)}%`;
-  return "기준";
+  if (percent.value === 0) return "동일";
+  const abs = Math.abs(percent.value);
+  const sign = percent.value > 0 ? "-" : "+";
+  const display = abs >= 1 ? Math.round(abs) : abs.toFixed(1);
+  return `${sign}${display}%`;
 });
 
 const variant = computed<"savings" | "destructive" | "neutral">(() => {
@@ -25,7 +27,7 @@ const variant = computed<"savings" | "destructive" | "neutral">(() => {
 </script>
 
 <template>
-  <Badge :variant="variant" class="h-6 w-[60px] justify-center px-0 py-0 text-[0.84rem] font-bold tabular-nums leading-none !text-white">
+  <Badge :variant="variant" class="h-5 w-[50px] justify-center px-0 py-0 text-[0.84rem] font-bold tabular-nums leading-none !text-white">
     {{ label }}
   </Badge>
 </template>

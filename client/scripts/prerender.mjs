@@ -1,0 +1,207 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  SITE_URL,
+  SERVICE_SLUG,
+  getAllPrerenderRoutes,
+  getCountryEntries,
+} from "./seo-routes.mjs";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DIST_DIR = path.resolve(__dirname, "../dist");
+const DIST_INDEX = path.resolve(DIST_DIR, "index.html");
+
+function updateMetaTag(html, selector, content) {
+  const pattern = new RegExp(`(<meta\\s+${selector}\\s+content=\")[^\"]*(\"\\s*\\/?>)`, "i");
+  if (pattern.test(html)) {
+    return html.replace(pattern, `$1${content}$2`);
+  }
+  return html;
+}
+
+function updateTitle(html, title) {
+  return html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`);
+}
+
+function injectJsonLd(html, jsonLd) {
+  // </script> 문자열이 JSON 값에 포함되면 HTML이 깨지므로 이스케이프 처리
+  const safeJson = JSON.stringify(jsonLd).replace(/<\/script>/gi, "<\\/script>");
+  const script = `<script type="application/ld+json">${safeJson}<\/script>`;
+  return html.replace("</head>", `  ${script}\n  </head>`);
+}
+
+function buildFallbackHtml(meta) {
+  return [
+    '<section style="max-width:920px;margin:0 auto;padding:20px 16px;color:#111;line-height:1.6;">',
+    `  <h1 style="font-size:28px;line-height:1.3;margin:0 0 12px;">${meta.heading}</h1>`,
+    `  <p style="margin:0 0 10px;">${meta.description}</p>`,
+    '  <p style="margin:0;color:#555;">이 페이지는 자바스크립트 비활성 환경용 SEO/GEO 요약 콘텐츠입니다.</p>',
+    "</section>",
+  ].join("\n");
+}
+
+function routeToMeta(route, countryMap) {
+  const defaultMeta = {
+    title: "유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위",
+    description:
+      "유튜브 프리미엄 국가별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준으로 한국 대비 절약률까지 제공합니다.",
+    heading: "유튜브 프리미엄 국가별 가격 비교",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "유튜브 프리미엄 국가별 가격 비교",
+      url: `${SITE_URL}${route}`,
+    },
+  };
+
+  if (route === "/about") {
+    return {
+      title: "소개 | 유튜브 프리미엄 가격 비교",
+      description: "유튜브 프리미엄 가격 비교 서비스의 데이터 출처와 갱신 주기를 안내합니다.",
+      heading: "서비스 소개",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        name: "서비스 소개",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
+  if (route === "/privacy") {
+    return {
+      title: "개인정보처리방침 | 유튜브 프리미엄 가격 비교",
+      description: "유튜브 프리미엄 가격 비교 서비스 개인정보처리방침",
+      heading: "개인정보처리방침",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "개인정보처리방침",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
+  if (route === `/${SERVICE_SLUG}/trends`) {
+    return {
+      title: "유튜브 프리미엄 가격 트렌드 | OTT 가격 비교",
+      description: "유튜브 프리미엄 최근 가격 하락 국가와 절약률 상위 국가를 확인하세요.",
+      heading: "유튜브 프리미엄 가격 트렌드",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "유튜브 프리미엄 가격 트렌드",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
+  if (route.startsWith(`/${SERVICE_SLUG}/`) && route.length > `/${SERVICE_SLUG}/`.length) {
+    const code = route.split("/").at(-1) || "";
+    const country = countryMap.get(code);
+    const countryName = country?.country || code.toUpperCase();
+    const krwText = country?.krw != null ? `월 ₩${Intl.NumberFormat("ko-KR").format(country.krw)}` : "국가 상세 요금";
+    return {
+      title: `유튜브 프리미엄 ${countryName} 가격 | 국가 상세 비교`,
+      description: `유튜브 프리미엄 ${countryName} ${krwText} 정보를 확인하고 한국 대비 절약 여부를 비교하세요.`,
+      heading: `${countryName} 유튜브 프리미엄 가격`,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "홈",
+                item: `${SITE_URL}/`,
+              },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "유튜브 프리미엄",
+                item: `${SITE_URL}/${SERVICE_SLUG}`,
+              },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: countryName,
+                item: `${SITE_URL}${route}`,
+              },
+            ],
+          },
+        ],
+      },
+    };
+  }
+
+  if (route === `/${SERVICE_SLUG}`) {
+    return {
+      title: "유튜브 프리미엄 국가별 가격 비교 · 최저가 순위",
+      description:
+        "유튜브 프리미엄 국가별 구독료를 한눈에 비교하고, 현재 환율 기준 최저가 국가 순위를 확인하세요.",
+      heading: "유튜브 프리미엄 국가별 최저가 비교",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "유튜브 프리미엄 국가별 가격 비교",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
+  return defaultMeta;
+}
+
+function buildRouteHtml(templateHtml, route, countryMap) {
+  const meta = routeToMeta(route, countryMap);
+
+  let html = templateHtml;
+  html = updateTitle(html, meta.title);
+  html = updateMetaTag(html, 'name="description"', meta.description);
+  html = updateMetaTag(html, 'property="og:title"', meta.title);
+  html = updateMetaTag(html, 'property="og:description"', meta.description);
+  html = updateMetaTag(html, 'property="og:url"', `${SITE_URL}${route}`);
+  html = updateMetaTag(html, 'name="twitter:title"', meta.title);
+  html = updateMetaTag(html, 'name="twitter:description"', meta.description);
+  html = injectJsonLd(html, meta.jsonLd);
+
+  if (html.includes('<div id="app"></div>')) {
+    html = html.replace(
+      '<div id="app"></div>',
+      `<div id="app"></div>\n    <div data-seo-prerender>${buildFallbackHtml(meta)}</div>`
+    );
+  }
+
+  return html;
+}
+
+function toOutputPath(route) {
+  if (route === "/") return DIST_INDEX;
+  const withoutSlash = route.replace(/^\//, "");
+  return path.join(DIST_DIR, withoutSlash, "index.html");
+}
+
+function main() {
+  if (!fs.existsSync(DIST_INDEX)) {
+    throw new Error(`dist/index.html not found: ${DIST_INDEX}`);
+  }
+
+  const template = fs.readFileSync(DIST_INDEX, "utf-8");
+  const countryMap = new Map(getCountryEntries().map((entry) => [entry.countryCode, entry]));
+  const routes = getAllPrerenderRoutes();
+
+  for (const route of routes) {
+    const outPath = toOutputPath(route);
+    fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    const html = buildRouteHtml(template, route, countryMap);
+    fs.writeFileSync(outPath, html, "utf-8");
+  }
+
+  process.stdout.write(`[prerender] generated ${routes.length} routes in dist\n`);
+}
+
+main();

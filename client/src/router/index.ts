@@ -31,6 +31,12 @@ const routes: RouteRecordRaw[] = [
     name: "ChangelogRedirect",
     redirect: "/",
   },
+  {
+    path: "/community/:postId",
+    name: "CommunityPost",
+    component: () => import("@/views/CommunityPostView.vue"),
+    meta: { title: "댓글 보기" },
+  },
   // 동적 라우트
   {
     path: "/:serviceSlug/trends",
@@ -57,6 +63,7 @@ const router = createRouter({
   routes,
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) return savedPosition;
+    if (_to.hash) return { el: _to.hash, behavior: "smooth", top: 80 };
     return { top: 0 };
   },
 });

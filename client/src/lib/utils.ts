@@ -21,13 +21,13 @@ export function formatCurrency(amount: number | null | undefined, currency: stri
   }).format(amount);
 }
 
-// 절약률 계산: (3130, 14900) → 79
+// 절약률 계산: (3130, 14900) → 79.0  (소수점 1자리)
 export function calcSavingsPercent(
   price: number | null | undefined,
   basePrice: number | null | undefined
 ): number {
   if (!price || !basePrice || basePrice === 0) return 0;
-  return Math.round(((basePrice - price) / basePrice) * 100);
+  return Math.round(((basePrice - price) / basePrice) * 1000) / 10;
 }
 
 // 국가 코드 → 국기 이모지: "KR" → 🇰🇷

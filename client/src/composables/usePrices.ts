@@ -12,7 +12,6 @@ export function usePrices() {
   // 필터/정렬 상태
   const selectedPlan = ref<string>("individual");
   const sortOrder = ref<SortOrder>("asc"); // asc: 싼 순, desc: 비싼 순
-  const displayCurrency = ref<DisplayCurrency>("krw"); // krw | usd
 
   async function loadPrices(serviceSlug: string): Promise<void> {
     loading.value = true;
@@ -26,24 +25,24 @@ export function usePrices() {
     }
   }
 
-  // 필터링 + 정렬된 가격 목록
+  // 필터링 + 정렬된 가격 목록 (KRW 기준 정렬)
   const filteredPrices = computed<CountryPrice[]>(() => {
     if (!priceData.value?.prices) return [];
 
-    const result = [...priceData.value.prices];
+    const result = priceData.value.prices.filter(
+      (p) => p.converted?.[selectedPlan.value] != null
+    );
 
-    // 가격 정렬 (선택된 요금제 기준, 선택된 통화 기준)
-    const currencyKey = displayCurrency.value;
     result.sort((a, b) => {
-      const priceA = a.converted?.[selectedPlan.value]?.[currencyKey] ?? Infinity;
-      const priceB = b.converted?.[selectedPlan.value]?.[currencyKey] ?? Infinity;
+      const priceA = a.converted?.[selectedPlan.value]?.krw ?? Infinity;
+      const priceB = b.converted?.[selectedPlan.value]?.krw ?? Infinity;
       return sortOrder.value === "asc" ? priceA - priceB : priceB - priceA;
     });
 
     return result;
   });
 
-  // 한국 기준 가격 (절약률 계산용)
+  // 기준 국가 가격 (절약률 계산용)
   const baseCountryPrice = computed<CountryPrice | null>(() => {
     if (!priceData.value?.prices) return null;
     return priceData.value.prices.find(
@@ -57,7 +56,6 @@ export function usePrices() {
     error,
     selectedPlan,
     sortOrder,
-    displayCurrency,
     filteredPrices,
     baseCountryPrice,
     loadPrices,

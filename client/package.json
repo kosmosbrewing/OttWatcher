@@ -4,8 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/sync-price-data.mjs",
     "dev": "vite",
-    "build": "vite build",
+    "prebuild": "node scripts/sync-price-data.mjs && node scripts/generate-sitemap.mjs",
+    "build": "vite build && node scripts/prerender.mjs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "preview": "vite preview"
   },

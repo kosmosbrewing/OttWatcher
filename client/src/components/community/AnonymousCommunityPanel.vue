@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import { RouterLink } from "vue-router";
 import { fetchCommunityPosts, submitCommunityPost, type CommunityPost } from "@/api";
 import { LoadingSpinner } from "@/components/ui/loading";
 
 const props = defineProps<{
   serviceSlug: string;
+  displayLimit?: number;
 }>();
 
 const COMMUNITY_SERVICE_SLUG =
@@ -16,6 +18,12 @@ const submitting = ref(false);
 const error = ref("");
 const formError = ref("");
 const content = ref("");
+
+const postLimit = computed(() => {
+  const raw = Number(props.displayLimit);
+  if (!Number.isFinite(raw) || raw <= 0) return 44;
+  return Math.min(100, Math.max(30, Math.floor(raw)));
+});
 
 function formatTime(iso: string | undefined): string {
   if (!iso) return "-";
@@ -32,8 +40,7 @@ async function loadPosts(forceRefresh = false): Promise<void> {
   loading.value = true;
   error.value = "";
   try {
-    const response = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", 30, {
-      skipCache: forceRefresh,
+    const response = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", postLimit.value, {
       forceRefresh,
     });
     posts.value = Array.isArray(response.posts) ? response.posts : [];
@@ -81,7 +88,7 @@ watch(
 <template>
   <aside class="retro-panel overflow-hidden lg:sticky lg:top-20 lg:self-start">
     <div class="retro-panel-content space-y-2.5">
-      <div class="max-h-[420px] overflow-y-auto pr-1">
+      <div class="max-h-[82vh] overflow-y-auto pr-1">
         <LoadingSpinner v-if="loading" variant="dots" size="sm" :center="false" />
         <p v-else-if="error" class="!text-xs text-destructive">{{ error }}</p>
         <ul v-else-if="posts.length > 0" class="divide-y divide-border/60">
@@ -90,14 +97,24 @@ watch(
             :key="post.id"
             class="py-1.5"
           >
-            <div class="flex items-center gap-1.5 !text-[11px] text-muted-foreground">
-              <span class="!text-xs font-semibold text-foreground">{{ post.nickname || "익명 유저" }}</span>
-              <span>·</span>
-              <span>{{ formatTime(post.createdAt) }}</span>
-            </div>
-            <p class="mt-0.5 whitespace-pre-line !text-xs leading-4 text-foreground">
-              {{ post.content }}
-            </p>
+            <RouterLink
+              :to="`/community/${post.id}`"
+              class="block rounded-sm px-1 py-1 transition-colors hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <div class="flex items-center gap-1.5 !text-[11px] text-muted-foreground">
+                <span class="!text-xs font-semibold text-foreground">{{ post.nickname || "익명 유저" }}</span>
+                <span>·</span>
+                <span>{{ formatTime(post.createdAt) }}</span>
+              </div>
+              <div class="mt-0.5 flex items-start justify-between gap-2">
+                <p class="flex-1 whitespace-pre-line !text-xs leading-4 text-foreground">
+                  {{ post.content }}
+                </p>
+                <span class="shrink-0 !text-[10px] font-semibold text-muted-foreground">
+                  답글 {{ post.commentCount ?? 0 }}
+                </span>
+              </div>
+            </RouterLink>
           </li>
         </ul>
         <p v-else class="!text-xs text-muted-foreground">

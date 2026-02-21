@@ -7,9 +7,10 @@
       "logo": "/images/logos/youtube-premium.svg",
       "color": "#FF0000",
       "plans": [
-        { "id": "individual", "name": "개인", "nameEn": "Individual" },
-        { "id": "family", "name": "가족", "nameEn": "Family" },
-        { "id": "student", "name": "학생", "nameEn": "Student" }
+        { "id": "individual", "name": "프리미엄", "nameEn": "Premium" },
+        { "id": "family", "name": "패밀리", "nameEn": "Family" },
+        { "id": "lite", "name": "라이트", "nameEn": "Lite" },
+        { "id": "duo", "name": "듀오", "nameEn": "Duo" }
       ],
       "dataFile": "youtube-premium.json",
       "active": true

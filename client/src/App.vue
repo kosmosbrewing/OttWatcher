@@ -43,7 +43,11 @@ onMounted(async () => {
   <div class="min-h-screen flex flex-col bg-background">
     <AppHeader />
     <main class="flex-1 relative">
-      <router-view />
+      <RouterView v-slot="{ Component }">
+        <Transition name="page-fade" mode="out-in">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
     <AppFooter />
     <AlertHost />
@@ -54,3 +58,15 @@ onMounted(async () => {
     />
   </div>
 </template>
+
+<style scoped>
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}
+</style>

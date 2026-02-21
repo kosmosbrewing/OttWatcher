@@ -4,7 +4,56 @@
   "installCommand": "cd client && npm ci",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/data/prices/(.*)\\.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy/index.html"
+    },
+    {
+      "source": "/youtube-premium",
+      "destination": "/youtube-premium/index.html"
+    },
+    {
+      "source": "/youtube-premium/trends",
+      "destination": "/youtube-premium/trends/index.html"
+    },
+    {
+      "source": "/youtube-premium/:country([a-z]{2})",
+      "destination": "/youtube-premium/:country/index.html"
+    },
     {
       "source": "/((?!api|assets|.*\\..*).*)",
       "destination": "/index.html"

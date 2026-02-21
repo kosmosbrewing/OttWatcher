@@ -36,13 +36,6 @@ onMounted(() => {
 <template>
   <div class="container py-6">
     <div class="third-rate-board">
-      <section class="retro-panel overflow-hidden mb-4">
-        <div class="retro-titlebar">
-          <h1 class="retro-title">유튜브 프리미엄 국가별 최저가 비교</h1>
-          <span class="retro-kbd">HOME</span>
-        </div>
-      </section>
-
       <section class="space-y-4">
         <Card class="retro-panel overflow-hidden">
           <div class="retro-titlebar">

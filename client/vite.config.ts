@@ -46,7 +46,10 @@ export default defineConfig({
             if (id.includes("vue") || id.includes("vue-router")) {
               return "vendor";
             }
-            if (id.includes("radix-vue") || id.includes("lucide-vue-next")) {
+            if (id.includes("lucide-vue-next")) {
+              return "icons";
+            }
+            if (id.includes("radix-vue")) {
               return "ui";
             }
             return "libs";
