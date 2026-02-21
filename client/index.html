@@ -5,15 +5,15 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위</title>
-    <meta name="description" content="유튜브 프리미엄 국가별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준으로 한국 대비 절약률까지 제공합니다." />
+    <title>유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)</title>
+    <meta name="description" content="유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준으로 한국 대비 절약률까지 제공합니다." />
 
     <!-- OG 태그 -->
-    <meta property="og:title" content="유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위" />
-    <meta property="og:description" content="유튜브 프리미엄 국가별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준 절약률도 제공합니다." />
+    <meta property="og:title" content="유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)" />
+    <meta property="og:description" content="유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준 절약률도 제공합니다." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
-    <meta property="og:site_name" content="유튜브 프리미엄 가격 비교" />
+    <meta property="og:site_name" content="OTT 구독료 국가별 가격 비교" />
     <meta property="og:url" content="https://ottwatcher.shakilabs.com" />
     <meta property="og:image" content="https://ottwatcher.shakilabs.com/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -42,7 +42,7 @@
         }
       })();
     </script>
-    <link rel="preload" as="font" href="/fonts/BMEuljiro.woff2" type="font/woff2" crossorigin />
+    <link rel="preload" as="font" href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSansBold.woff2" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
       rel="preload"
@@ -60,12 +60,11 @@
 
     <!-- Critical CSS: LCP 최적화 (폰트 + CSS 변수 + 기본 스타일) -->
     <style>
-      /* BM을지로: 큰 제목 전용 — fonts.baemin.com 무료 배포 폰트 */
+      /* 지마켓산스: 큰 제목 전용 — gmarket.co.kr 무료 배포 폰트 */
       @font-face {
-        font-family: "BMEuljiro";
-        src: url("/fonts/BMEuljiro.woff2") format("woff2"),
-             url("/fonts/BMEuljiro.woff") format("woff");
-        font-weight: 400;
+        font-family: "GmarketSans";
+        src: url("https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSansBold.woff2") format("woff2");
+        font-weight: 700;
         font-style: normal;
         font-display: swap;
       }
@@ -150,13 +149,17 @@
     <div id="app"></div>
     <noscript>
       <section style="max-width:920px;margin:0 auto;padding:20px 16px;line-height:1.6;">
-        <h1 style="font-size:28px;line-height:1.3;margin:0 0 12px;">유튜브 프리미엄 국가별 가격 비교</h1>
+        <h1 style="font-size:28px;line-height:1.3;margin:0 0 12px;">OTT 서비스 국가별·나라별 구독료 가격 비교</h1>
         <p style="margin:0 0 10px;">
-          현재 환율 기준으로 유튜브 프리미엄 국가별 월 구독료를 비교하고 최저가 국가를 확인할 수 있습니다.
+          유튜브 프리미엄(Youtube Premium), 넷플릭스 등 OTT 서비스의 국가별·나라별 월 구독료를 현재 환율 기준으로 비교하고 최저가 국가를 확인할 수 있습니다.
         </p>
-        <p style="margin:0;">
-          자세한 가격표: <a href="/youtube-premium">/youtube-premium</a>
-        </p>
+        <ul style="margin:0 0 10px;padding-left:20px;">
+          <li><a href="/youtube-premium">유튜브 프리미엄 국가별 가격 비교</a></li>
+          <li><a href="/youtube-premium/trends">유튜브 프리미엄 가격 변동 트렌드</a></li>
+          <li><a href="/youtube-premium/kr">유튜브 프리미엄 한국 가격 상세</a></li>
+          <li><a href="/youtube-premium/in">유튜브 프리미엄 인도 가격 상세</a></li>
+          <li><a href="/youtube-premium/tr">유튜브 프리미엄 터키 가격 상세</a></li>
+        </ul>
       </section>
     </noscript>
     <script type="module" src="/src/main.ts"></script>

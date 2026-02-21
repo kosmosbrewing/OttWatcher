@@ -1,0 +1,32 @@
+# OttWatcher — OTT 구독료 국가별 가격 비교
+
+> 유튜브 프리미엄(Youtube Premium) 등 OTT 서비스의 국가별·나라별 구독료를 현재 환율 기준으로 비교하는 서비스입니다. 최저가 국가 순위, 한국 대비 절약률, 가격 변동 트렌드를 제공합니다.
+
+## 사이트 정보
+
+- URL: https://ottwatcher.shakilabs.com
+- 언어: 한국어
+- 데이터 갱신: 매일 (환율 및 가격 데이터)
+- 제공 서비스: 유튜브 프리미엄 (Youtube Premium)
+
+## 주요 페이지
+
+- [홈](https://ottwatcher.shakilabs.com/): OTT 서비스 목록 및 국가별 가격 비교 진입점
+- [유튜브 프리미엄 국가별 가격 비교](https://ottwatcher.shakilabs.com/youtube-premium): 43개국 구독료를 KRW/USD로 환산하여 비교, 최저가 순위 제공
+- [유튜브 프리미엄 가격 변동 트렌드](https://ottwatcher.shakilabs.com/youtube-premium/trends): 최근 가격 하락 국가, 절약률 상위 국가, 가격 변동 TOP 10
+
+## 국가별 상세 페이지
+
+각 국가별로 유튜브 프리미엄 개인/가족/학생 요금제 가격, 현지 통화 가격, KRW·USD 환산가, 한국 대비 절약률, 같은 대륙 국가 비교, 최근 가격 변동 이력을 제공합니다.
+
+주요 국가: 한국(/youtube-premium/kr), 미국(/youtube-premium/us), 일본(/youtube-premium/jp), 인도(/youtube-premium/in), 터키(/youtube-premium/tr), 영국(/youtube-premium/gb), 대만(/youtube-premium/tw), 브라질(/youtube-premium/br)
+
+## 데이터 출처
+
+- 가격: 각 서비스의 공식 공개 요금 기준
+- 환율: 실시간 환율 데이터 (매일 갱신)
+- 비교 기준: 월 구독료 기준 KRW 환산
+
+## 연락처
+
+- 이메일: skdba1313@gmail.com

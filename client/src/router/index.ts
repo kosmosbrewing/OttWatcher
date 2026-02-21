@@ -6,7 +6,7 @@ const routes: RouteRecordRaw[] = [
     path: "/",
     name: "Home",
     component: () => import("@/views/HomeView.vue"),
-    meta: { title: "유튜브 프리미엄 국가별 최저가 비교" },
+    meta: { title: "OTT 구독료 국가별 가격 비교 | 유튜브 프리미엄·넷플릭스 나라별 최저가" },
   },
   // 정적 라우트를 동적 라우트보다 먼저 배치
   {
@@ -42,19 +42,25 @@ const routes: RouteRecordRaw[] = [
     path: "/:serviceSlug/trends",
     name: "ServiceTrends",
     component: () => import("@/views/TrendsView.vue"),
-    meta: { title: "유튜브 프리미엄 가격 트렌드" },
+    meta: { title: "유튜브 프리미엄 가격 변동 트렌드 · 국가별 구독료 변화" },
   },
   {
     path: "/:serviceSlug",
     name: "ServicePrice",
     component: () => import("@/views/ServicePriceView.vue"),
-    meta: { title: "유튜브 프리미엄 가격 비교" },
+    meta: { title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가" },
   },
   {
     path: "/:serviceSlug/:countryCode",
     name: "CountryDetail",
     component: () => import("@/views/CountryDetailView.vue"),
-    meta: { title: "국가 상세" },
+    meta: { title: "국가별 가격 상세 | OTT 가격 비교" },
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("@/views/NotFoundView.vue"),
+    meta: { title: "페이지를 찾을 수 없습니다 | OTT 가격 비교" },
   },
 ];
 

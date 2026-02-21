@@ -1,7 +1,16 @@
+# OttWatcher — OTT 구독료 국가별 가격 비교
+# https://ottwatcher.shakilabs.com
+
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /assets/
 
+# AI 검색엔진 명시 허용
 User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
 Allow: /
 
 User-agent: PerplexityBot
@@ -13,4 +22,8 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://ottwatcher.shakilabs.com/sitemap.xml
+LLMs-txt: https://ottwatcher.shakilabs.com/llms.txt

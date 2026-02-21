@@ -113,7 +113,7 @@ const planPrices = computed<PlanPriceRow[]>(() => {
 const pageTitle = computed(() => {
   const svc = currentService.value?.name || serviceSlug.value;
   const country = countryData.value?.country || countryCode.value.toUpperCase();
-  return `${svc} ${country} 가격 | OTT 가격 비교`;
+  return `${svc} ${country} 가격 · 나라별 구독료 비교 | OTT 가격 비교`;
 });
 
 const pageDescription = computed(() => {
@@ -124,9 +124,9 @@ const pageDescription = computed(() => {
     ? calcSavingsPercent(krw, baseCountryPrice.value.converted.individual.krw)
     : 0;
   if (savings > 0) {
-    return `${svc} ${country} 월 ₩${formatNumber(Math.round(krw))} — 한국 대비 ${savings}% 절약. 요금제별 상세 가격 비교.`;
+    return `${svc} ${country} 월 ₩${formatNumber(Math.round(krw))} — 한국 대비 ${savings}% 절약. 국가별 요금제 상세 가격 비교.`;
   }
-  return `${svc} ${country} 구독 요금 상세 정보. 개인/가족/학생 요금제별 가격 비교.`;
+  return `${svc} ${country} 구독 요금 상세 정보. 개인/가족/학생 요금제별 나라별 가격 비교.`;
 });
 
 const countryDetailJsonLd = computed<Record<string, unknown> | undefined>(() => {

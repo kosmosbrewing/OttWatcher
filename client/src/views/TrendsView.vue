@@ -26,19 +26,19 @@ const currentService = computed(() =>
 
 const trendHeading = computed(() => {
   if (serviceSlug.value === "youtube-premium") {
-    return "유투브 프리미엄 가격 트렌드";
+    return "유튜브 프리미엄 가격 트렌드";
   }
   return `${currentService.value?.name || serviceSlug.value} 가격 트렌드`;
 });
 
 const pageTitle = computed(() => {
   const serviceName = currentService.value?.name || serviceSlug.value;
-  return `${serviceName} 가격 트렌드 | OTT 가격 비교`;
+  return `${serviceName} 가격 변동 트렌드 · 국가별 구독료 변화 | OTT 가격 비교`;
 });
 
 const pageDescription = computed(() => {
   const serviceName = currentService.value?.name || serviceSlug.value;
-  return `${serviceName} 최근 가격 하락 국가와 절약률 상위 국가를 확인하세요.`;
+  return `${serviceName} 국가별·나라별 최근 가격 하락 국가와 절약률 상위 국가를 확인하세요. 구독료 변동 추이.`;
 });
 
 useSEO({
@@ -228,7 +228,7 @@ watch(serviceSlug, () => void loadTrendData());
 
 <style scoped>
 .third-rate-board :deep(.retro-title) {
-  font-size: clamp(1.5rem, 3.2vw, 2.5rem);
+  font-size: clamp(1.25rem, 2.6vw, 2rem);
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;

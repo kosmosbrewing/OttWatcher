@@ -44,14 +44,14 @@ function buildFallbackHtml(meta) {
 
 function routeToMeta(route, countryMap) {
   const defaultMeta = {
-    title: "유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위",
+    title: "OTT 구독료 국가별 가격 비교 | 유튜브 프리미엄·넷플릭스 나라별 최저가",
     description:
-      "유튜브 프리미엄 국가별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준으로 한국 대비 절약률까지 제공합니다.",
-    heading: "유튜브 프리미엄 국가별 가격 비교",
+      "유튜브 프리미엄(Youtube Premium), 넷플릭스 등 OTT 서비스 국가별·나라별 구독료를 현재 환율 기준으로 비교. 최저가 국가 순위와 절약률.",
+    heading: "OTT 서비스 국가별·나라별 구독료 가격 비교",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      name: "유튜브 프리미엄 국가별 가격 비교",
+      name: "OTT 구독료 국가별 가격 비교",
       url: `${SITE_URL}${route}`,
     },
   };
@@ -86,13 +86,13 @@ function routeToMeta(route, countryMap) {
 
   if (route === `/${SERVICE_SLUG}/trends`) {
     return {
-      title: "유튜브 프리미엄 가격 트렌드 | OTT 가격 비교",
-      description: "유튜브 프리미엄 최근 가격 하락 국가와 절약률 상위 국가를 확인하세요.",
-      heading: "유튜브 프리미엄 가격 트렌드",
+      title: "유튜브 프리미엄 가격 변동 트렌드 · 국가별 구독료 변화 | OTT 가격 비교",
+      description: "유튜브 프리미엄 국가별·나라별 최근 가격 하락 국가와 절약률 상위 국가를 확인하세요. 구독료 변동 추이.",
+      heading: "유튜브 프리미엄 가격 변동 트렌드",
       jsonLd: {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        name: "유튜브 프리미엄 가격 트렌드",
+        name: "유튜브 프리미엄 가격 변동 트렌드",
         url: `${SITE_URL}${route}`,
       },
     };
@@ -104,8 +104,8 @@ function routeToMeta(route, countryMap) {
     const countryName = country?.country || code.toUpperCase();
     const krwText = country?.krw != null ? `월 ₩${Intl.NumberFormat("ko-KR").format(country.krw)}` : "국가 상세 요금";
     return {
-      title: `유튜브 프리미엄 ${countryName} 가격 | 국가 상세 비교`,
-      description: `유튜브 프리미엄 ${countryName} ${krwText} 정보를 확인하고 한국 대비 절약 여부를 비교하세요.`,
+      title: `유튜브 프리미엄 ${countryName} 가격 · 나라별 구독료 비교 | OTT 가격 비교`,
+      description: `유튜브 프리미엄 ${countryName} ${krwText} 정보를 확인하고 한국 대비 절약 여부를 비교하세요. 국가별 요금제 상세 가격 비교.`,
       heading: `${countryName} 유튜브 프리미엄 가격`,
       jsonLd: {
         "@context": "https://schema.org",
@@ -140,10 +140,10 @@ function routeToMeta(route, countryMap) {
 
   if (route === `/${SERVICE_SLUG}`) {
     return {
-      title: "유튜브 프리미엄 국가별 가격 비교 · 최저가 순위",
+      title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)",
       description:
-        "유튜브 프리미엄 국가별 구독료를 한눈에 비교하고, 현재 환율 기준 최저가 국가 순위를 확인하세요.",
-      heading: "유튜브 프리미엄 국가별 최저가 비교",
+        "유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
+      heading: "유튜브 프리미엄 국가별·나라별 가격 비교",
       jsonLd: {
         "@context": "https://schema.org",
         "@type": "WebPage",

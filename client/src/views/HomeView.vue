@@ -10,16 +10,16 @@ const { services, loading, error, loadServices } = useServices();
 const siteUrl = getSiteUrl();
 
 useSEO({
-  title: "유튜브 프리미엄 국가별 가격 비교 | 최저가 국가 순위",
+  title: "OTT 구독료 국가별 가격 비교 | 유튜브 프리미엄·넷플릭스 나라별 최저가",
   description:
-    "유튜브 프리미엄 국가별 구독료를 한눈에 비교하세요. 현재 환율 기준으로 한국 대비 절약률과 최저가 국가 순위를 확인할 수 있습니다.",
+    "유튜브 프리미엄(Youtube Premium), 넷플릭스 등 OTT 서비스 국가별·나라별 구독료를 현재 환율 기준으로 비교. 최저가 국가 순위와 절약률.",
   ogImage: `${siteUrl}/og-image.png`,
   jsonLd: {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "유튜브 프리미엄 가격 비교",
+    name: "OTT 구독료 국가별 가격 비교",
     url: siteUrl,
-    description: "유튜브 프리미엄 국가별 구독료 최저가 비교",
+    description: "유튜브 프리미엄·넷플릭스 등 OTT 서비스 국가별·나라별 구독료 최저가 비교",
     potentialAction: {
       "@type": "SearchAction",
       target: `${siteUrl}/?q={search_term_string}`,
@@ -36,6 +36,7 @@ onMounted(() => {
 <template>
   <div class="container py-6">
     <div class="third-rate-board">
+      <h1 class="sr-only">OTT 서비스 국가별 가격 비교 — 나라별 구독료 최저가</h1>
       <section class="space-y-4">
         <Card class="retro-panel overflow-hidden">
           <div class="retro-titlebar">
@@ -83,6 +84,7 @@ onMounted(() => {
                     들어가기
                   </span>
                 </div>
+                <p class="text-[0.7rem] text-muted-foreground mt-1.5 truncate">{{ service.name }} 국가별 구독료 비교 →</p>
               </RouterLink>
             </div>
           </CardContent>
@@ -94,7 +96,7 @@ onMounted(() => {
 
 <style scoped>
 .third-rate-board :deep(.retro-title) {
-  font-size: clamp(1.5rem, 3.2vw, 2.5rem);
+  font-size: clamp(1.25rem, 2.6vw, 2rem);
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;

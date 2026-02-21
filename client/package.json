@@ -7,7 +7,7 @@
     "predev": "node scripts/sync-price-data.mjs",
     "dev": "vite",
     "prebuild": "node scripts/sync-price-data.mjs && node scripts/generate-sitemap.mjs",
-    "build": "vite build && node scripts/prerender.mjs",
+    "build": "vite build && node scripts/prerender.mjs && node scripts/update-sitemap.mjs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "preview": "vite preview"
   },
