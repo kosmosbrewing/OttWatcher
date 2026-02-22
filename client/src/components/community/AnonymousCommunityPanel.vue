@@ -1,29 +1,31 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
-import { fetchCommunityPosts, submitCommunityPost, type CommunityPost } from "@/api";
+import { fetchCommunityPosts, fetchPopularPosts, submitCommunityPost, type CommunityPost } from "@/api";
 import { LoadingSpinner } from "@/components/ui/loading";
 
 const props = defineProps<{
   serviceSlug: string;
-  displayLimit?: number;
 }>();
 
 const COMMUNITY_SERVICE_SLUG =
   import.meta.env.VITE_COMMUNITY_SERVICE_SLUG || "global-community";
 
-const posts = ref<CommunityPost[]>([]);
-const loading = ref(false);
-const submitting = ref(false);
-const error = ref("");
-const formError = ref("");
-const content = ref("");
+type TabType = "latest" | "popular";
+const activeTab = ref<TabType>("latest");
 
-const postLimit = computed(() => {
-  const raw = Number(props.displayLimit);
-  if (!Number.isFinite(raw) || raw <= 0) return 44;
-  return Math.min(100, Math.max(30, Math.floor(raw)));
-});
+const latestPosts = ref<CommunityPost[]>([]);
+const popularPosts = ref<CommunityPost[]>([]);
+const latestLoading = ref(false);
+const popularLoading = ref(false);
+const error = ref("");
+
+const displayedPosts = computed(() =>
+  activeTab.value === "popular" ? popularPosts.value : latestPosts.value
+);
+const loading = computed(() =>
+  activeTab.value === "popular" ? popularLoading.value : latestLoading.value
+);
 
 function formatTime(iso: string | undefined): string {
   if (!iso) return "-";
@@ -36,116 +38,169 @@ function formatTime(iso: string | undefined): string {
   }).format(new Date(iso));
 }
 
-async function loadPosts(forceRefresh = false): Promise<void> {
-  loading.value = true;
+function toPreviewTitle(post: CommunityPost): string {
+  const t = (post.title || "").trim();
+  if (t) return t;
+  const firstLine = (post.content || "").split("\n").map((l) => l.trim()).find(Boolean);
+  return firstLine || "제목 없음";
+}
+
+async function loadLatest(): Promise<void> {
+  latestLoading.value = true;
   error.value = "";
   try {
-    const response = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", postLimit.value, {
-      forceRefresh,
-    });
-    posts.value = Array.isArray(response.posts) ? response.posts : [];
+    const res = await fetchCommunityPosts(COMMUNITY_SERVICE_SLUG, "ALL", 10);
+    latestPosts.value = Array.isArray(res.posts) ? res.posts.slice(0, 10) : [];
   } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : "커뮤니티 글을 불러오지 못했습니다.";
+    error.value = e instanceof Error ? e.message : "불러오지 못했습니다.";
   } finally {
-    loading.value = false;
+    latestLoading.value = false;
   }
 }
 
-async function onSubmit(): Promise<void> {
-  formError.value = "";
-  const trimmed = content.value.trim();
-
-  if (trimmed.length < 2) {
-    formError.value = "내용을 2자 이상 입력해 주세요.";
-    return;
+async function loadPopular(): Promise<void> {
+  popularLoading.value = true;
+  try {
+    const res = await fetchPopularPosts(COMMUNITY_SERVICE_SLUG, 10);
+    popularPosts.value = Array.isArray(res.posts) ? res.posts : [];
+  } catch {
+    popularPosts.value = [];
+  } finally {
+    popularLoading.value = false;
   }
+}
 
-  submitting.value = true;
+function switchTab(tab: TabType): void {
+  activeTab.value = tab;
+  if (tab === "popular" && popularPosts.value.length === 0) {
+    void loadPopular();
+  }
+}
+
+const MAX_LENGTH = 300;
+const postContent = ref("");
+const postSubmitting = ref(false);
+const postError = ref("");
+
+const contentLength = computed(() => postContent.value.length);
+
+async function submitPost(): Promise<void> {
+  const content = postContent.value.trim();
+  if (!content || postSubmitting.value) return;
+  postSubmitting.value = true;
+  postError.value = "";
   try {
     await submitCommunityPost({
       serviceSlug: COMMUNITY_SERVICE_SLUG,
       countryCode: "ALL",
-      content: trimmed,
+      content,
     });
-    content.value = "";
-    await loadPosts(true);
+    postContent.value = "";
+    await loadLatest();
+    activeTab.value = "latest";
   } catch (e: unknown) {
-    formError.value = e instanceof Error ? e.message : "등록 중 오류가 발생했습니다.";
+    postError.value = e instanceof Error ? e.message : "등록에 실패했습니다.";
   } finally {
-    submitting.value = false;
+    postSubmitting.value = false;
   }
 }
 
 watch(
   () => props.serviceSlug,
-  () => {
-    loadPosts();
-  },
+  () => { void loadLatest(); },
   { immediate: true }
 );
 </script>
 
 <template>
   <aside class="retro-panel overflow-hidden lg:sticky lg:top-20 lg:self-start">
-    <div class="retro-panel-content space-y-2.5">
-      <div class="max-h-[82vh] overflow-y-auto pr-1">
-        <LoadingSpinner v-if="loading" variant="dots" size="sm" :center="false" />
-        <p v-else-if="error" class="!text-xs text-destructive">{{ error }}</p>
-        <ul v-else-if="posts.length > 0" class="divide-y divide-border/60">
-          <li
-            v-for="post in posts"
-            :key="post.id"
-            class="py-1.5"
-          >
-            <RouterLink
-              :to="`/community/${post.id}`"
-              class="block rounded-sm px-1 py-1 transition-colors hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <div class="flex items-center gap-1.5 !text-[11px] text-muted-foreground">
-                <span class="!text-xs font-semibold text-foreground">{{ post.nickname || "익명 유저" }}</span>
-                <span>·</span>
-                <span>{{ formatTime(post.createdAt) }}</span>
-              </div>
-              <div class="mt-0.5 flex items-start justify-between gap-2">
-                <p class="flex-1 whitespace-pre-line !text-xs leading-4 text-foreground">
-                  {{ post.content }}
-                </p>
-                <span class="shrink-0 !text-[10px] font-semibold text-muted-foreground">
-                  답글 {{ post.commentCount ?? 0 }}
-                </span>
-              </div>
-            </RouterLink>
-          </li>
-        </ul>
-        <p v-else class="!text-xs text-muted-foreground">
-          아직 등록된 글이 없습니다.
-        </p>
-      </div>
+    <!-- 탭 -->
+    <div class="flex px-5 pt-2">
+      <button
+        class="flex-1 py-1.5 text-center !text-xs font-semibold transition-colors"
+        :class="activeTab === 'latest' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'"
+        @click="switchTab('latest')"
+      >
+        최신글
+      </button>
+      <button
+        class="flex-1 py-1.5 text-center !text-xs font-semibold transition-colors"
+        :class="activeTab === 'popular' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'"
+        @click="switchTab('popular')"
+      >
+        인기글
+      </button>
+    </div>
 
-      <form class="space-y-1.5 border-t border-border/60 pt-2.5" @submit.prevent="onSubmit">
-        <label for="anonymous-post" class="!text-xs font-medium text-muted-foreground">
-          익명 글쓰기
-        </label>
+    <!-- 목록 -->
+    <LoadingSpinner v-if="loading" class="retro-panel-content" variant="dots" size="sm" :center="false" />
+    <p v-else-if="error" class="retro-panel-content !text-xs text-destructive">{{ error }}</p>
+
+    <ul v-else-if="displayedPosts.length > 0" class="mt-3 mb-3">
+      <li v-for="(post, index) in displayedPosts" :key="post.id">
+        <div v-if="index > 0" class="mx-5 border-t border-border/60" />
+        <RouterLink
+          :to="`/community/${post.id}`"
+          class="block px-5 py-1 transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          <!-- 닉네임 · 날짜 -->
+          <div class="flex items-center gap-1 !text-[11px] text-muted-foreground">
+            <span class="font-semibold text-foreground">{{ post.nickname || "익명 유저" }}</span>
+            <span>·</span>
+            <span>{{ formatTime(post.createdAt) }}</span>
+          </div>
+          <!-- 본문 + 추천·댓글 -->
+          <div class="mt-0.5 flex items-baseline justify-between gap-2">
+            <p class="flex-1 !text-xs text-foreground line-clamp-1">
+              {{ toPreviewTitle(post) }}
+            </p>
+            <span class="shrink-0 flex items-center gap-2 !text-[10px] text-muted-foreground tabular-nums">
+              <span>추천 {{ post.likeCount ?? 0 }}</span>
+              <span>답글 {{ post.commentCount ?? 0 }}</span>
+            </span>
+          </div>
+        </RouterLink>
+      </li>
+    </ul>
+
+    <p v-else class="retro-panel-content !text-xs text-muted-foreground">
+      {{ activeTab === 'popular' ? '아직 인기글이 없습니다.' : '아직 등록된 글이 없습니다.' }}
+    </p>
+
+    <!-- 글쓰기 -->
+    <div class="border-t border-border/60 px-4 pt-3 pb-3">
+      <p class="!text-[11px] font-semibold text-muted-foreground mb-1.5">익명 글쓰기</p>
+      <div class="border border-border rounded">
         <textarea
-          id="anonymous-post"
-          v-model="content"
+          v-model="postContent"
+          :maxlength="MAX_LENGTH"
           rows="3"
-          maxlength="300"
-          class="w-full rounded-none border border-border/70 bg-transparent px-2 py-1.5 !text-xs leading-4 placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-0"
           placeholder="가격 체감, 우회 결제 경험, 변경 제보 등을 익명으로 남겨주세요."
+          class="w-full resize-none bg-transparent px-2.5 py-2 !text-xs outline-none placeholder:text-muted-foreground/60"
         />
-        <div class="flex items-center justify-between">
-          <span class="!text-[11px] text-muted-foreground">{{ content.length }}/300</span>
+        <div class="flex items-center justify-between border-t border-border/60 px-2.5 py-1.5">
+          <span class="!text-[11px] text-muted-foreground tabular-nums">{{ contentLength }}/{{ MAX_LENGTH }}</span>
           <button
-            type="submit"
-            class="retro-button-subtle !px-1.5 !py-0.5 !text-xs"
-            :disabled="submitting"
+            type="button"
+            :disabled="contentLength === 0 || postSubmitting"
+            class="!text-[11px] font-semibold text-primary disabled:opacity-40 hover:underline"
+            @click="submitPost"
           >
-            {{ submitting ? "등록 중..." : "등록" }}
+            {{ postSubmitting ? '등록 중...' : '등록' }}
           </button>
         </div>
-        <p v-if="formError" class="!text-xs text-destructive">{{ formError }}</p>
-      </form>
+      </div>
+      <p v-if="postError" class="!text-[11px] text-destructive mt-1">{{ postError }}</p>
+    </div>
+
+    <!-- 전체보기 -->
+    <div class="border-t border-border/60 px-5 py-3">
+      <RouterLink
+        to="/community"
+        class="!text-xs font-semibold text-primary hover:underline"
+      >
+        전체보기 →
+      </RouterLink>
     </div>
   </aside>
 </template>

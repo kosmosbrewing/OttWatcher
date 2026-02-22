@@ -24,15 +24,15 @@ const config: Config = {
           "Malgun Gothic",
           ...fontFamily.sans,
         ],
-        // 헤더 Fade / 네비 / 큰 제목 — BM을지로 통일
+        // 헤더 Fade / 네비 / 큰 제목 — GmarketSans 통일
         title: [
-          "BMEuljiro",
+          "GmarketSans",
           "Pretendard",
           "Noto Sans KR",
           ...fontFamily.sans,
         ],
         emphasis: [
-          "BMEuljiro",
+          "GmarketSans",
           "Pretendard",
           "Noto Sans KR",
           ...fontFamily.sans,

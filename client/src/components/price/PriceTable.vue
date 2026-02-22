@@ -29,7 +29,7 @@ const baseKrw = computed<number | null>(() => {
           <TableHead class="min-w-0">국가</TableHead>
           <TableHead class="text-right w-[116px] hidden sm:table-cell text-muted-foreground">현지 가격</TableHead>
           <TableHead class="text-right w-[64px] hidden sm:table-cell text-muted-foreground">달러</TableHead>
-          <TableHead class="text-right w-[100px]">
+          <TableHead class="text-right w-[112px]">
             <span class="inline-flex items-center justify-end gap-1">
               원화
               <ArrowUp

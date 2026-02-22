@@ -16,6 +16,11 @@ import type {
   CommunityComment,
   CommentsResponse,
   CommunityThreadResponse,
+  LikeResponse,
+  PopularPostsResponse,
+  CountryVotePayload,
+  CountryVoteResponse,
+  CountryVoteResultsResponse,
 } from "./types";
 
 // Zod 검증 스키마 — 사용자 입력 경계에서 검증
@@ -30,10 +35,20 @@ const priceAlertSchema = z.object({
 const communityPostSchema = z.object({
   serviceSlug: z.string().regex(/^[a-z0-9-]+$/, "유효하지 않은 서비스 슬러그입니다."),
   countryCode: z.string().default("ALL"),
-  content: z.string().min(2, "입력값이 올바르지 않습니다.").max(300, "입력값이 올바르지 않습니다."),
+  title: z.string().trim().min(2, "입력값이 올바르지 않습니다.").max(100, "입력값이 올바르지 않습니다.").optional(),
+  content: z.string().min(2, "입력값이 올바르지 않습니다.").max(2000, "입력값이 올바르지 않습니다."),
 });
 
 const commentSchema = z.string().min(2, "입력값이 올바르지 않습니다.").max(300, "입력값이 올바르지 않습니다.");
+
+const likePostIdSchema = z.string().regex(/^com_[a-z0-9]+$/, "유효하지 않은 게시글 ID입니다.");
+const likeCommentIdSchema = z.string().regex(/^cmt_[a-z0-9]+$/, "유효하지 않은 댓글 ID입니다.");
+
+const countryVoteSchema = z.object({
+  serviceSlug: z.string().regex(/^[a-z0-9-]+$/, "유효하지 않은 서비스 슬러그입니다."),
+  countryCode: z.string().regex(/^[A-Za-z]{2}$/, "입력값이 올바르지 않습니다."),
+  allowRevote: z.boolean().optional(),
+});
 
 const ALERT_STORAGE_KEY = "ottwatcher:alerts:v1";
 
@@ -100,6 +115,7 @@ function normalizeCommunityPosts(value: unknown): CommunityPost[] {
     .filter(isRecord)
     .map((post) => ({
       id: typeof post.id === "string" || typeof post.id === "number" ? post.id : "",
+      title: typeof post.title === "string" ? post.title : "",
       nickname: typeof post.nickname === "string" ? post.nickname : "익명 유저",
       content: typeof post.content === "string" ? post.content : "",
       createdAt: typeof post.createdAt === "string" ? post.createdAt : "",
@@ -110,6 +126,12 @@ function normalizeCommunityPosts(value: unknown): CommunityPost[] {
           ? Math.max(0, Math.floor(post.commentCount))
           : typeof post.comment_count === "number" && Number.isFinite(post.comment_count)
             ? Math.max(0, Math.floor(post.comment_count))
+            : 0,
+      likeCount:
+        typeof post.likeCount === "number" && Number.isFinite(post.likeCount)
+          ? Math.max(0, Math.floor(post.likeCount))
+          : typeof post.like_count === "number" && Number.isFinite(post.like_count)
+            ? Math.max(0, Math.floor(post.like_count))
             : 0,
     }))
     .filter((post) => post.id && post.content && post.createdAt)
@@ -131,11 +153,18 @@ function normalizeCommunityPost(value: unknown): CommunityPost | null {
 
   return {
     id: normalizedId,
+    title: typeof post.title === "string" ? post.title : "",
     nickname: typeof post.nickname === "string" ? post.nickname : "익명 유저",
     content,
     createdAt,
     serviceSlug: typeof post.serviceSlug === "string" ? post.serviceSlug : undefined,
     countryCode: typeof post.countryCode === "string" ? post.countryCode : undefined,
+    likeCount:
+      typeof post.likeCount === "number" && Number.isFinite(post.likeCount)
+        ? Math.max(0, Math.floor(post.likeCount))
+        : typeof post.like_count === "number" && Number.isFinite(post.like_count)
+          ? Math.max(0, Math.floor(post.like_count))
+          : 0,
   };
 }
 
@@ -158,6 +187,10 @@ function normalizeCommunityComments(value: unknown): CommunityComment[] {
       nickname: typeof comment.nickname === "string" ? comment.nickname : "익명 유저",
       content: typeof comment.content === "string" ? comment.content : "",
       createdAt: typeof comment.createdAt === "string" ? comment.createdAt : "",
+      likeCount:
+        typeof comment.likeCount === "number" && Number.isFinite(comment.likeCount)
+          ? Math.max(0, Math.floor(comment.likeCount))
+          : 0,
     }))
     .filter((comment) => comment.id && comment.content && comment.createdAt);
 }
@@ -227,7 +260,41 @@ export function fetchCommunityPosts(
   return requestCommunityApi<CommunityPostsResponse>(`?${query.toString()}`, {
     method: "GET",
     cache: options?.skipCache || options?.forceRefresh ? "no-store" : "default",
-  }).then((payload) => ({ posts: normalizeCommunityPosts(payload) }));
+  }).then((payload) => ({
+    posts: normalizeCommunityPosts(payload),
+    total:
+      isRecord(payload) && typeof payload.total === "number" && Number.isFinite(payload.total)
+        ? Math.max(0, Math.floor(payload.total))
+        : undefined,
+  }));
+}
+
+export function fetchAllCommunityPosts(
+  page = 1,
+  limit = 20
+): Promise<CommunityPostsResponse> {
+  const normalizedPage = Number.isFinite(page)
+    ? Math.max(1, Math.floor(page))
+    : 1;
+  const normalizedLimit = Number.isFinite(limit)
+    ? Math.min(50, Math.max(1, Math.floor(limit)))
+    : 20;
+
+  const query = new URLSearchParams({
+    page: String(normalizedPage),
+    limit: String(normalizedLimit),
+  });
+
+  return requestCommunityApi<CommunityPostsResponse>(`/all?${query.toString()}`, {
+    method: "GET",
+    cache: "no-store",
+  }).then((payload) => ({
+    posts: normalizeCommunityPosts(payload),
+    total:
+      isRecord(payload) && typeof payload.total === "number" && Number.isFinite(payload.total)
+        ? Math.max(0, Math.floor(payload.total))
+        : undefined,
+  }));
 }
 
 export async function fetchCommunityPost(postId: string): Promise<CommunityPostResponse> {
@@ -326,6 +393,7 @@ export async function submitCommunityPost(payload: JsonRecord): Promise<JsonReco
   const parsed = communityPostSchema.parse({
     serviceSlug: payload.serviceSlug ?? "",
     countryCode: payload.countryCode ?? "ALL",
+    title: typeof payload.title === "string" ? payload.title.trim() : undefined,
     content: typeof payload.content === "string" ? payload.content.trim() : "",
   });
 
@@ -335,7 +403,128 @@ export async function submitCommunityPost(payload: JsonRecord): Promise<JsonReco
     body: JSON.stringify({
       serviceSlug: parsed.serviceSlug,
       countryCode,
+      title: parsed.title,
       content: parsed.content,
     }),
   });
+}
+
+export async function togglePostLike(postId: string): Promise<LikeResponse> {
+  const validId = likePostIdSchema.parse(postId);
+
+  const payload = await requestCommunityApi<LikeResponse>(`/${validId}/like`, {
+    method: "POST",
+  });
+
+  return {
+    liked: typeof payload.liked === "boolean" ? payload.liked : false,
+    likeCount:
+      typeof payload.likeCount === "number" && Number.isFinite(payload.likeCount)
+        ? Math.max(0, Math.floor(payload.likeCount))
+        : 0,
+  };
+}
+
+export async function toggleCommentLike(
+  postId: string,
+  commentId: string
+): Promise<LikeResponse> {
+  ensureValidPostId(postId);
+  const validCommentId = likeCommentIdSchema.parse(commentId);
+
+  const payload = await requestCommunityApi<LikeResponse>(
+    `/${postId}/comments/${validCommentId}/like`,
+    { method: "POST" }
+  );
+
+  return {
+    liked: typeof payload.liked === "boolean" ? payload.liked : false,
+    likeCount:
+      typeof payload.likeCount === "number" && Number.isFinite(payload.likeCount)
+        ? Math.max(0, Math.floor(payload.likeCount))
+        : 0,
+  };
+}
+
+export function fetchPopularPosts(
+  serviceSlug: string,
+  limit = 5
+): Promise<PopularPostsResponse> {
+  ensureValidSlug(serviceSlug);
+
+  const normalizedLimit = Number.isFinite(limit)
+    ? Math.min(30, Math.max(1, Math.floor(limit)))
+    : 5;
+
+  const query = new URLSearchParams({
+    serviceSlug,
+    limit: String(normalizedLimit),
+  });
+
+  return requestCommunityApi<PopularPostsResponse>(`/popular?${query.toString()}`, {
+    method: "GET",
+    cache: "no-cache",
+  }).then((payload) => ({ posts: normalizeCommunityPosts(payload) }));
+}
+
+export async function submitCountryVote(
+  payload: CountryVotePayload
+): Promise<CountryVoteResponse> {
+  const parsed = countryVoteSchema.parse(payload);
+
+  const body: {
+    serviceSlug: string;
+    countryCode: string;
+    allowRevote?: boolean;
+  } = {
+    serviceSlug: parsed.serviceSlug,
+    countryCode: parsed.countryCode.toUpperCase(),
+  };
+
+  if (parsed.allowRevote) {
+    body.allowRevote = true;
+  }
+
+  const result = await requestCommunityApi<CountryVoteResponse>("/vote", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+  return {
+    voted: typeof result.voted === "boolean" ? result.voted : true,
+    countryCode: typeof result.countryCode === "string" ? result.countryCode : parsed.countryCode,
+    revoted: typeof result.revoted === "boolean" ? result.revoted : undefined,
+  };
+}
+
+export async function fetchVoteResults(
+  serviceSlug: string
+): Promise<CountryVoteResultsResponse> {
+  ensureValidSlug(serviceSlug);
+
+  const query = new URLSearchParams({ serviceSlug });
+
+  const payload = await requestCommunityApi<CountryVoteResultsResponse>(
+    `/vote/results?${query.toString()}`,
+    { method: "GET", cache: "no-cache" }
+  );
+
+  const results = Array.isArray(payload.results)
+    ? payload.results.filter(isRecord).map((r) => ({
+        countryCode: typeof r.countryCode === "string" ? r.countryCode : "",
+        country: typeof r.country === "string" ? r.country : "",
+        voteCount:
+          typeof r.voteCount === "number" && Number.isFinite(r.voteCount)
+            ? Math.max(0, Math.floor(r.voteCount))
+            : 0,
+      }))
+    : [];
+
+  return {
+    results,
+    totalVotes:
+      typeof payload.totalVotes === "number" && Number.isFinite(payload.totalVotes)
+        ? payload.totalVotes
+        : results.reduce((sum, r) => sum + r.voteCount, 0),
+  };
 }

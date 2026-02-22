@@ -50,7 +50,7 @@ const formattedUsd = computed(() => {
 // KRW 포맷
 const formattedKrw = computed(() => {
   if (krwPrice.value == null) return "-";
-  return `₩${formatNumber(Math.round(krwPrice.value))}`;
+  return `${formatNumber(Math.round(krwPrice.value))}원`;
 });
 
 const flag = computed(() => countryFlag(props.item.countryCode));
@@ -71,7 +71,7 @@ const flag = computed(() => countryFlag(props.item.countryCode));
         <span v-if="sortOrder === 'asc' && rank === 1" class="text-body shrink-0 mr-1" title="1위">🥇</span>
         <span v-else-if="sortOrder === 'asc' && rank === 2" class="text-body shrink-0 mr-1" title="2위">🥈</span>
         <span v-else-if="sortOrder === 'asc' && rank === 3" class="text-body shrink-0 mr-1" title="3위">🥉</span>
-        <span v-else class="text-[0.72rem] text-muted-foreground tabular-nums shrink-0 w-5 text-right mr-1">#{{ rank }}</span>
+        <span v-else class="text-tiny text-muted-foreground tabular-nums shrink-0 w-5 text-right mr-1">#{{ rank }}</span>
         <!-- 국기는 항상 표시 -->
         <span class="text-body">{{ flag }}</span>
         <span class="text-caption">{{ item.country }}</span>
@@ -90,7 +90,7 @@ const flag = computed(() => countryFlag(props.item.countryCode));
     </TableCell>
 
     <!-- KRW 환산가 -->
-    <TableCell class="text-right font-semibold text-body tabular-nums w-[100px]">
+    <TableCell class="text-right font-semibold text-body tabular-nums w-[112px]">
       {{ formattedKrw }}
     </TableCell>
 
@@ -99,7 +99,7 @@ const flag = computed(() => countryFlag(props.item.countryCode));
       <Badge
         v-if="isBase"
         variant="neutral"
-        class="h-5 w-[50px] justify-center px-0 py-0 text-[0.84rem] font-bold leading-none !text-white"
+        class="h-5 w-[50px] justify-center px-0 py-0 text-tiny font-bold leading-none !text-white"
       >기준</Badge>
       <SavingsBadge
         v-else-if="baseKrw != null && krwPrice != null"

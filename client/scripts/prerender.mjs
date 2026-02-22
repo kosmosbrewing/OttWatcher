@@ -84,6 +84,20 @@ function routeToMeta(route, countryMap) {
     };
   }
 
+  if (route === "/community") {
+    return {
+      title: "커뮤니티 | OTT 가격 비교",
+      description: "OTT 가격 정보 공유 커뮤니티",
+      heading: "커뮤니티",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "커뮤니티",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
   if (route === `/${SERVICE_SLUG}/trends`) {
     return {
       title: "유튜브 프리미엄 가격 변동 트렌드 · 국가별 구독료 변화 | OTT 가격 비교",
@@ -156,8 +170,23 @@ function routeToMeta(route, countryMap) {
   return defaultMeta;
 }
 
+function routeToOgImage(route) {
+  // /youtube-premium/:code → /og/youtube-premium/:code.png
+  if (route.startsWith(`/${SERVICE_SLUG}/`) && route.length > `/${SERVICE_SLUG}/`.length) {
+    const code = route.split("/").at(-1) || "";
+    return `${SITE_URL}/og/${SERVICE_SLUG}/${code}.png`;
+  }
+  // / 또는 /youtube-premium → /og/youtube-premium.png
+  if (route === "/" || route === `/${SERVICE_SLUG}`) {
+    return `${SITE_URL}/og/${SERVICE_SLUG}.png`;
+  }
+  // 그 외 (about, privacy 등) — 기본 OG 이미지
+  return `${SITE_URL}/og-image.png`;
+}
+
 function buildRouteHtml(templateHtml, route, countryMap) {
   const meta = routeToMeta(route, countryMap);
+  const ogImage = routeToOgImage(route);
 
   let html = templateHtml;
   html = updateTitle(html, meta.title);
@@ -165,8 +194,10 @@ function buildRouteHtml(templateHtml, route, countryMap) {
   html = updateMetaTag(html, 'property="og:title"', meta.title);
   html = updateMetaTag(html, 'property="og:description"', meta.description);
   html = updateMetaTag(html, 'property="og:url"', `${SITE_URL}${route}`);
+  html = updateMetaTag(html, 'property="og:image"', ogImage);
   html = updateMetaTag(html, 'name="twitter:title"', meta.title);
   html = updateMetaTag(html, 'name="twitter:description"', meta.description);
+  html = updateMetaTag(html, 'name="twitter:image"', ogImage);
   html = injectJsonLd(html, meta.jsonLd);
 
   if (html.includes('<div id="app"></div>')) {

@@ -15,8 +15,11 @@ import PriceTable from "@/components/price/PriceTable.vue";
 import PlanSelector from "@/components/filter/PlanSelector.vue";
 import SortToggle from "@/components/filter/SortToggle.vue";
 import AnonymousCommunityPanel from "@/components/community/AnonymousCommunityPanel.vue";
+import CountryVoteModal from "@/components/community/CountryVoteModal.vue";
 import PriceComparisonSection from "@/components/price/PriceComparisonSection.vue";
 import ServiceSEOSection from "@/components/price/ServiceSEOSection.vue";
+import { Vote } from "lucide-vue-next";
+import { useMyPlan } from "@/composables/useMyPlan";
 
 const route = useRoute();
 const { services, loadServices } = useServices();
@@ -29,12 +32,25 @@ const {
   filteredPrices,
   loadPrices,
 } = usePrices();
+const { selectedPlan: myPlanId, hasChosen: myPlanChosen } = useMyPlan();
 
 const { setMessages } = useHeadlineMessages();
 
 const showTrendTop10 = false;
 const trendData = ref<TrendsResponse | null>(null);
 const trendLoading = ref(false);
+const showVoteModal = ref(false);
+
+// 투표 모달용 국가 목록: 가격 데이터에서 추출
+const voteCountries = computed(() => {
+  if (!priceData.value?.prices) return [];
+  return priceData.value.prices
+    .filter((p) => p.countryCode && p.country)
+    .map((p) => ({
+      countryCode: p.countryCode,
+      country: typeof p.country === "string" ? p.country : p.countryCode,
+    }));
+});
 const serviceSlug = computed(() => {
   const slug = route.params.serviceSlug;
   return typeof slug === "string" ? slug : "";
@@ -244,7 +260,7 @@ const seoJsonLd = computed<Record<string, unknown> | undefined>(() => {
 useSEO({
   title: pageTitle,
   description: pageDescription,
-  ogImage: `${siteUrl}/og-image.png`,
+  ogImage: `${siteUrl}/og/youtube-premium.png`,
   jsonLd: seoJsonLd,
 });
 
@@ -252,7 +268,7 @@ useSEO({
 
 function fmtKrw(val: number | null | undefined): string {
   if (val == null) return "-";
-  return `₩${formatNumber(Math.round(val))}`;
+  return `${formatNumber(Math.round(val))}원`;
 }
 
 function fmtUsd(val: number | null | undefined): string {
@@ -294,19 +310,23 @@ watch(
     const liteKrw = toNumber(baseEntry?.converted?.["lite"]?.krw);
 
     const msgs: string[] = [];
-    if (cheapest) msgs.push(`현재 최저가 🥇 ${cheapest.country} — 월 ${fmtKrw(cheapest.krw)}`);
-    if (savings > 0 && cheapest) msgs.push(`한국 ${fmtKrw(baseKrw!)} vs ${cheapest.country} ${fmtKrw(cheapest.krw)} 🫠`);
+    if (cheapest) msgs.push(`최저가 🥇 ${cheapest.country} — 월 ${fmtKrw(cheapest.krw)}`);
+    if (savings > 0 && cheapest) msgs.push(`한국 ${fmtKrw(baseKrw!)} vs ${cheapest.country} ${fmtKrw(cheapest.krw)} — ${savings}% 차이 🫠`);
     if (mostExpensive && mostExpensive.countryCode !== cheapest?.countryCode && baseKrw != null && mostExpensive.krw > baseKrw) {
-      msgs.push(`${countryFlag(mostExpensive.countryCode)} ${mostExpensive.country}는 월 ${fmtKrw(mostExpensive.krw)}... 한국은 양반이네요 😅`);
+      msgs.push(`${countryFlag(mostExpensive.countryCode)} ${mostExpensive.country}는 월 ${fmtKrw(mostExpensive.krw)}. 한국이 저렴해 보이는 순간 😅`);
     }
-    if (savingsAmt > 0) msgs.push(`매달 ${fmtKrw(savingsAmt)}씩 아낄 수 있어요`);
-    if (second) msgs.push(`🥈 ${second.country}. 월 ${fmtKrw(second.krw)}`);
-    if (savings > 0) msgs.push(`최대 ${savings}% 더 저렴한 나라가 있어요`);
-    if (cups >= 2) msgs.push(`절약액으로 커피 ${cups}잔. 매달.`);
-    if (third) msgs.push(`🥉 ${third.country}도 있어요. 월 ${fmtKrw(third.krw)}`);
-    if (savingsAmt > 0) msgs.push(`1년이면 ${fmtKrw(savingsAmt * 12)} 차이나요`);
-    if (liteKrw != null) msgs.push(`라이트 플랜 월 ${fmtKrw(Math.round(liteKrw))} — 유튜브 뮤직 없이 🎵`);
-    if (cheapest?.usd != null) msgs.push(`최저가 ${cheapest.country} — 달러로 ${fmtUsd(cheapest.usd)}/월`);
+    if (savingsAmt > 0) msgs.push(`최저가로 바꾸면 매달 ${fmtKrw(savingsAmt)} 절약`);
+    if (second) msgs.push(`🥈 ${second.country} — 월 ${fmtKrw(second.krw)}`);
+    if (savings > 0) msgs.push(`최대 ${savings}% 저렴, 월 ${fmtKrw(savingsAmt)} 아끼는 나라가 있어요`);
+    if (cups >= 2) msgs.push(`절약액 = 커피 ${cups}잔 ☕ 매달 공짜`);
+    if (third) msgs.push(`🥉 ${third.country} — 월 ${fmtKrw(third.krw)}`);
+    if (savingsAmt > 0) {
+      const yearSavings = savingsAmt * 12;
+      const chickens = Math.floor(yearSavings / 22000);
+      msgs.push(chickens > 0 ? `1년이면 ${fmtKrw(yearSavings)} 차이. 치킨 ${chickens}마리값 🍗` : `1년이면 ${fmtKrw(yearSavings)} 차이`);
+    }
+    if (liteKrw != null) msgs.push(`프리미엄 라이트 월 ${fmtKrw(Math.round(liteKrw))} — 유튜브 뮤직 빼면 이 가격 🎵`);
+    if (cheapest?.usd != null) msgs.push(`${cheapest.country} 달러 기준 ${fmtUsd(cheapest.usd)}/월`);
     if (underKorea > 0) msgs.push(`${underKorea}개국이 한국보다 저렴합니다`);
 
     setMessages(msgs);
@@ -337,6 +357,17 @@ async function init(): Promise<void> {
 }
 
 onMounted(init);
+
+// useMyPlan hydration/저장 시점에 요금제 동기화 (App.vue onMounted 이후에도 반영)
+watch(
+  [myPlanChosen, myPlanId],
+  ([chosen, planId]) => {
+    if (chosen && planId) {
+      selectedPlan.value = planId;
+    }
+  },
+  { immediate: true }
+);
 
 watch(serviceSlug, (slug) => {
   if (!slug) return;
@@ -406,11 +437,11 @@ watch(serviceSlug, (slug) => {
                 :base-country-price="dynamicBaseCountryPrice"
                 :service-slug="serviceSlug"
               />
-              <div class="mt-2 flex flex-wrap items-center justify-end gap-2 text-[0.72rem] sm:text-[0.76rem] font-medium leading-tight">
-                <span class="text-muted-foreground">총 {{ filteredPrices.length }}개국</span>
-                <span class="text-muted-foreground">· 업데이트 {{ priceData.lastUpdated }}</span>
-                <span class="text-muted-foreground">· 환율 기준 {{ priceData.exchangeRateDate }}</span>
-                <span v-if="usdToKrwRate" class="text-muted-foreground">· $1 = ₩{{ formatNumber(usdToKrwRate) }}</span>
+              <div class="mt-2 flex flex-wrap items-center justify-end gap-2 text-[0.72rem] font-normal text-muted-foreground leading-tight">
+                <span>총 {{ filteredPrices.length }}개국</span>
+                <span>· 업데이트 {{ priceData.lastUpdated }}</span>
+                <span>· 환율 기준 {{ priceData.exchangeRateDate }}</span>
+                <span v-if="usdToKrwRate">· $1 = ₩{{ formatNumber(usdToKrwRate) }}</span>
               </div>
             </CardContent>
           </Card>
@@ -466,9 +497,34 @@ watch(serviceSlug, (slug) => {
         </div>
 
         <aside class="space-y-4">
-          <AnonymousCommunityPanel :service-slug="serviceSlug" :display-limit="filteredPrices.length" />
+          <!-- 국가 투표 카드 -->
+          <div class="retro-panel overflow-hidden">
+            <div class="retro-panel-content">
+              <button
+                type="button"
+                class="w-full flex items-center gap-2.5 rounded-sm border border-primary/30 bg-primary/5 px-3 py-2.5 text-left transition-colors hover:border-primary/60 hover:bg-primary/10"
+                @click="showVoteModal = true"
+              >
+                <Vote class="h-5 w-5 shrink-0 text-primary" />
+                <div>
+                  <p class="!text-xs font-bold text-foreground">유튜브 프리미엄 최적 국가 투표</p>
+                  <p class="!text-[11px] text-muted-foreground">어떤 나라에서 구독하는 게 가장 좋을까요?</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <AnonymousCommunityPanel :service-slug="serviceSlug" />
         </aside>
       </section>
+
+      <!-- 국가 투표 모달 -->
+      <CountryVoteModal
+        :show="showVoteModal"
+        :service-slug="serviceSlug"
+        :countries="voteCountries"
+        @close="showVoteModal = false"
+      />
 
       <!-- FAQ -->
       <ServiceSEOSection

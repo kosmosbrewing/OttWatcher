@@ -86,10 +86,12 @@ export interface CommunityPost {
   id: string;
   serviceSlug?: string;
   countryCode?: string;
+  title?: string;
   nickname?: string;
   content?: string;
   createdAt?: string;
   commentCount?: number;
+  likeCount?: number;
   [key: string]: unknown;
 }
 
@@ -100,6 +102,7 @@ export interface CommunityPostResponse {
 
 export interface CommunityPostsResponse {
   posts: CommunityPost[];
+  total?: number;
   [key: string]: unknown;
 }
 
@@ -109,6 +112,7 @@ export interface CommunityComment {
   nickname?: string;
   content?: string;
   createdAt?: string;
+  likeCount?: number;
   [key: string]: unknown;
 }
 
@@ -122,4 +126,36 @@ export interface CommunityThreadResponse {
   comments: CommunityComment[];
   hasMore: boolean;
   [key: string]: unknown;
+}
+
+export interface LikeResponse {
+  liked: boolean;
+  likeCount: number;
+}
+
+export interface CountryVotePayload {
+  serviceSlug: string;
+  countryCode: string;
+  allowRevote?: boolean;
+}
+
+export interface CountryVoteResult {
+  countryCode: string;
+  country: string;
+  voteCount: number;
+}
+
+export interface CountryVoteResultsResponse {
+  results: CountryVoteResult[];
+  totalVotes: number;
+}
+
+export interface CountryVoteResponse {
+  voted: boolean;
+  countryCode: string;
+  revoted?: boolean;
+}
+
+export interface PopularPostsResponse {
+  posts: CommunityPost[];
 }

@@ -34,8 +34,7 @@
   }
 
   .retro-title {
-    @apply text-caption font-semibold tracking-normal;
-    font-family: "GmarketSans", "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    @apply text-caption font-semibold tracking-normal font-title;
   }
 
   .retro-kbd {

@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useServices } from "@/composables/useServices";
 import { useMyPlan } from "@/composables/useMyPlan";
+import { countryFlag } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/loading";
 
 const emit = defineEmits<{
@@ -10,34 +11,69 @@ const emit = defineEmits<{
 }>();
 
 const { services, loading, error, loadServices } = useServices();
-const { selectedService, selectedPlan, saveMyPlan } = useMyPlan();
+const { selectedPlan, selectedCountry, saveMyPlan } = useMyPlan();
 
-const selectedServiceSlug = ref("");
+const step = ref<1 | 2>(1);
 const selectedPlanId = ref("");
+const selectedCountryCode = ref("KR");
 const submitError = ref("");
 
+const COUNTRIES = [
+  { code: "KR", name: "한국" },
+  { code: "US", name: "미국" },
+  { code: "JP", name: "일본" },
+  { code: "GB", name: "영국" },
+  { code: "DE", name: "독일" },
+  { code: "FR", name: "프랑스" },
+  { code: "CA", name: "캐나다" },
+  { code: "AU", name: "호주" },
+  { code: "TR", name: "튀르키예" },
+  { code: "IN", name: "인도" },
+  { code: "AR", name: "아르헨티나" },
+  { code: "BR", name: "브라질" },
+  { code: "PH", name: "필리핀" },
+  { code: "UA", name: "우크라이나" },
+  { code: "PL", name: "폴란드" },
+  { code: "MX", name: "멕시코" },
+  { code: "EG", name: "이집트" },
+  { code: "ZA", name: "남아프리카" },
+  { code: "NG", name: "나이지리아" },
+  { code: "TH", name: "태국" },
+  { code: "VN", name: "베트남" },
+];
+
+// 현재 유튜브 프리미엄 고정 — 서비스 추가 시 서비스 선택 UI 복원
 const currentService = computed(() =>
-  services.value.find((service) => service.slug === selectedServiceSlug.value)
+  services.value.find((service) => service.slug === "youtube-premium") ?? services.value[0] ?? null
 );
 
 const availablePlans = computed(() => currentService.value?.plans ?? []);
 
-function handleSelectService(serviceSlug: string): void {
-  if (selectedServiceSlug.value !== serviceSlug) {
-    selectedServiceSlug.value = serviceSlug;
-    selectedPlanId.value = "";
-  }
-}
+const canGoStep2 = computed(() => !!selectedPlanId.value);
 
 function handleSelectPlan(planId: string): void {
   selectedPlanId.value = planId;
 }
 
+function goToStep2(): void {
+  if (!canGoStep2.value) return;
+  step.value = 2;
+}
+
+function goToStep1(): void {
+  step.value = 1;
+}
+
+function handleSelectCountry(code: string): void {
+  selectedCountryCode.value = code;
+}
+
 function handleComplete(): void {
-  if (!selectedServiceSlug.value || !selectedPlanId.value) return;
+  const serviceSlug = currentService.value?.slug;
+  if (!serviceSlug || !selectedPlanId.value) return;
   submitError.value = "";
   try {
-    saveMyPlan(selectedServiceSlug.value, selectedPlanId.value, services.value);
+    saveMyPlan(serviceSlug, selectedPlanId.value, services.value, selectedCountryCode.value);
     emit("complete");
   } catch (e: unknown) {
     submitError.value =
@@ -64,8 +100,8 @@ onMounted(async () => {
   }
 
   await loadServices();
-  selectedServiceSlug.value = selectedService.value;
   selectedPlanId.value = selectedPlan.value;
+  selectedCountryCode.value = selectedCountry.value || "KR";
 });
 
 onUnmounted(() => {
@@ -80,79 +116,123 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <div class="fixed inset-0 z-[80] bg-black/50 p-4" @click.self="handleLater">
+    <div class="fixed inset-0 z-[80] flex items-center justify-center" @click.self="handleLater">
+      <div class="absolute inset-0 bg-black/60" @click="handleLater" />
       <div
-        class="mx-auto mt-[8vh] w-full max-w-[680px] rounded-2xl border border-border bg-background shadow-2xl"
+        class="relative z-10 w-full max-w-md sm:max-w-lg mx-4 max-h-[80vh] overflow-hidden retro-panel border border-border"
       >
-        <div class="border-b border-border px-5 py-4">
-          <h2 class="text-heading font-bold text-foreground">내 요금제 설정</h2>
-          <p class="mt-1 text-caption text-muted-foreground">
-            내 서비스와 요금제를 선택하면 이후 비교 기능에 바로 활용됩니다.
-          </p>
+        <!-- 헤더 -->
+        <div class="retro-titlebar flex items-center justify-between">
+          <h2 class="retro-title !text-[1rem]">내 요금제 설정</h2>
+          <button class="retro-kbd text-xs" @click="handleLater">ESC</button>
         </div>
 
-        <div class="max-h-[68vh] overflow-y-auto px-5 py-4">
+        <!-- 스텝 인디케이터 -->
+        <div class="flex items-center gap-0 px-5 pt-4 pb-2">
+          <button
+            class="flex items-center gap-1.5 text-xs font-semibold transition-colors"
+            :class="step === 1 ? 'text-primary' : 'text-muted-foreground'"
+            @click="goToStep1"
+          >
+            <span
+              class="flex items-center justify-center w-5 h-5 rounded-full text-[0.65rem] font-bold leading-none border transition-colors"
+              :class="step === 1 ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40 bg-muted/30 text-muted-foreground'"
+            >1</span>
+            <span>요금제</span>
+          </button>
+          <div class="flex-1 h-px mx-3" :class="step >= 2 ? 'bg-primary/50' : 'bg-border'" />
+          <span
+            class="flex items-center gap-1.5 text-xs font-semibold"
+            :class="step === 2 ? 'text-primary' : 'text-muted-foreground/50'"
+          >
+            <span
+              class="flex items-center justify-center w-5 h-5 rounded-full text-[0.65rem] font-bold leading-none border transition-colors"
+              :class="step === 2 ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/30 bg-muted/20 text-muted-foreground/50'"
+            >2</span>
+            <span>국가</span>
+          </span>
+        </div>
+
+        <!-- 본문 -->
+        <div class="p-4 overflow-y-auto max-h-[calc(80vh-8rem)]">
           <LoadingSpinner v-if="loading" message="서비스 목록을 불러오는 중..." />
 
-          <div v-else-if="error" class="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-            <p class="text-caption text-destructive">{{ error }}</p>
+          <div v-else-if="error" class="rounded border border-destructive/40 bg-destructive/5 p-4">
+            <p class="text-xs text-destructive">{{ error }}</p>
           </div>
 
-          <div v-else class="space-y-5">
-            <section>
-              <p class="mb-2 text-caption font-semibold text-foreground">1. 서비스 선택</p>
-              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                <button
-                  v-for="service in services"
-                  :key="service.slug"
-                  type="button"
-                  class="rounded-lg border px-3 py-2 text-left text-caption font-medium transition-colors"
-                  :class="selectedServiceSlug === service.slug
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-card text-foreground hover:border-primary/50'"
-                  @click="handleSelectService(service.slug)"
-                >
-                  {{ service.name }}
-                </button>
-              </div>
-            </section>
+          <!-- Step 1: 요금제 선택 -->
+          <div v-else-if="step === 1">
+            <p class="text-sm text-muted-foreground mb-4">
+              유튜브 프리미엄 요금제를 선택해 주세요.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                v-for="plan in availablePlans"
+                :key="plan.id"
+                type="button"
+                class="rounded-md border px-3 py-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
+                :class="selectedPlanId === plan.id
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border/60 bg-card text-foreground hover:border-primary/50'"
+                @click="handleSelectPlan(plan.id)"
+              >
+                <p class="text-xs font-semibold">{{ plan.name }}</p>
+                <p v-if="plan.nameEn" class="mt-0.5 text-[0.65rem] text-muted-foreground">
+                  {{ plan.nameEn }}
+                </p>
+              </button>
+            </div>
+          </div>
 
-            <section v-if="currentService">
-              <p class="mb-2 text-caption font-semibold text-foreground">2. 요금제 선택</p>
-              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <button
-                  v-for="plan in availablePlans"
-                  :key="plan.id"
-                  type="button"
-                  class="rounded-lg border px-3 py-2 text-left text-caption transition-colors"
-                  :class="selectedPlanId === plan.id
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-card text-foreground hover:border-primary/50'"
-                  @click="handleSelectPlan(plan.id)"
-                >
-                  <p class="font-semibold">{{ plan.name }}</p>
-                  <p v-if="plan.nameEn" class="mt-0.5 text-tiny text-muted-foreground">
-                    {{ plan.nameEn }}
-                  </p>
-                </button>
-              </div>
-            </section>
+          <!-- Step 2: 국가 선택 -->
+          <div v-else-if="step === 2">
+            <p class="text-sm text-muted-foreground mb-4">구독 중인 국가를 선택해 주세요.</p>
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+              <button
+                v-for="c in COUNTRIES"
+                :key="c.code"
+                type="button"
+                class="flex flex-col items-center gap-1.5 rounded-md border px-2 py-3 text-center transition-all hover:scale-[1.03] active:scale-[0.97]"
+                :class="selectedCountryCode === c.code
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border/60 hover:border-primary/50'"
+                @click="handleSelectCountry(c.code)"
+              >
+                <span class="text-[1.75rem] leading-none">{{ countryFlag(c.code) }}</span>
+                <span class="text-xs font-semibold leading-tight truncate w-full">{{ c.name }}</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
-          <p v-if="submitError" class="mr-auto text-caption text-destructive">{{ submitError }}</p>
-          <button type="button" class="retro-button-subtle !px-3 !py-1.5" @click="handleLater">
-            나중에 하기
-          </button>
-          <button
-            type="button"
-            class="retro-button !px-3 !py-1.5"
-            :disabled="!selectedServiceSlug || !selectedPlanId"
-            @click="handleComplete"
-          >
-            선택 완료
-          </button>
+        <!-- 하단 버튼 -->
+        <div class="flex items-center justify-between border-t border-border/60 px-4 py-3">
+          <p v-if="submitError" class="text-xs text-destructive">{{ submitError }}</p>
+          <span v-else />
+          <div class="flex items-center gap-2">
+            <button type="button" class="retro-kbd text-xs" @click="handleLater">
+              나중에 하기
+            </button>
+            <button
+              v-if="step === 1"
+              type="button"
+              class="retro-kbd text-xs font-semibold"
+              :class="canGoStep2 ? 'text-primary border-primary/50 hover:bg-primary/10' : 'opacity-40'"
+              :disabled="!canGoStep2"
+              @click="goToStep2"
+            >
+              다음 →
+            </button>
+            <button
+              v-else
+              type="button"
+              class="retro-kbd text-xs font-semibold text-primary border-primary/50 hover:bg-primary/10"
+              @click="handleComplete"
+            >
+              선택 완료
+            </button>
+          </div>
         </div>
       </div>
     </div>

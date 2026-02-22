@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useRoute, RouterLink } from "vue-router";
 import { usePrices } from "@/composables/usePrices";
 import { useServices } from "@/composables/useServices";
 import { useSEO } from "@/composables/useSEO";
 import {
-  fetchTrends,
-  subscribePriceAlert,
   type CountryPrice,
   type ServiceInfo,
   type ServicePlan,
-  type TrendPoint,
-  type TrendsResponse,
 } from "@/api";
 import { formatNumber, calcSavingsPercent, countryFlag } from "@/lib/utils";
 import { getSiteUrl } from "@/lib/site";
@@ -23,7 +19,6 @@ import { ArrowLeft } from "lucide-vue-next";
 const route = useRoute();
 const { services, loadServices } = useServices();
 const { priceData, loading, error, baseCountryPrice, loadPrices } = usePrices();
-const trendData = ref<TrendsResponse | null>(null);
 const siteUrl = getSiteUrl();
 const serviceSlug = computed(() => {
   const slug = route.params.serviceSlug;
@@ -34,11 +29,6 @@ const countryCode = computed(() => {
   return typeof code === "string" ? code : "";
 });
 
-const alertEmail = ref("");
-const alertTargetPrice = ref("");
-const alertSubmitting = ref(false);
-const alertSuccess = ref("");
-const alertError = ref("");
 
 // 현재 서비스 메타
 const currentService = computed<ServiceInfo | undefined>(() =>
@@ -75,12 +65,6 @@ const nearbyCountries = computed<CountryPrice[]>(() => {
     )
     .sort((a, b) => (a.converted?.individual?.krw ?? Infinity) - (b.converted?.individual?.krw ?? Infinity))
     .slice(0, 5);
-});
-
-const countryHistory = computed<TrendPoint[]>(() => {
-  const code = countryData.value?.countryCode?.toUpperCase();
-  if (!code || !trendData.value?.countryChanges) return [];
-  return trendData.value.countryChanges[code] || [];
 });
 
 type PlanPriceRow = ServicePlan & {
@@ -169,14 +153,14 @@ const countryDetailJsonLd = computed<Record<string, unknown> | undefined>(() => 
 useSEO({
   title: pageTitle,
   description: pageDescription,
-  ogImage: `${siteUrl}/og-image.png`,
+  ogImage: `${siteUrl}/og/youtube-premium/${countryCode.value}.png`,
   jsonLd: countryDetailJsonLd,
 });
 
 // 통화 포맷 헬퍼
 function fmtKrw(val: number | null | undefined): string {
   if (val == null) return "-";
-  return `₩${formatNumber(Math.round(val))}`;
+  return `${formatNumber(Math.round(val))}원`;
 }
 
 function fmtUsd(val: number | null | undefined): string {
@@ -189,41 +173,10 @@ function fmtLocal(val: number | null | undefined, currency: string | undefined):
   return `${formatNumber(val)} ${currency || ""}`.trim();
 }
 
-async function loadTrendData(service: string): Promise<void> {
-  try {
-    trendData.value = await fetchTrends(service);
-  } catch {
-    trendData.value = null;
-  }
-}
-
-async function submitAlert(): Promise<void> {
-  if (!countryData.value || !currentService.value || !serviceSlug.value) return;
-  alertError.value = "";
-  alertSuccess.value = "";
-  alertSubmitting.value = true;
-
-  try {
-    const response = await subscribePriceAlert({
-      serviceSlug: serviceSlug.value,
-      countryCode: countryData.value.countryCode,
-      planId: "individual",
-      targetPriceKrw: Number(alertTargetPrice.value),
-      email: alertEmail.value.trim(),
-    });
-    alertSuccess.value = String(response.message || "알림 신청이 완료되었습니다.");
-    alertTargetPrice.value = "";
-  } catch (e: unknown) {
-    alertError.value = e instanceof Error ? e.message : "신청 처리 중 오류가 발생했습니다.";
-  } finally {
-    alertSubmitting.value = false;
-  }
-}
-
 async function init(): Promise<void> {
   await loadServices();
   if (!serviceSlug.value) return;
-  await Promise.all([loadPrices(serviceSlug.value), loadTrendData(serviceSlug.value)]);
+  await loadPrices(serviceSlug.value);
 }
 
 onMounted(init);
@@ -232,7 +185,7 @@ watch(
   [serviceSlug, countryCode],
   () => {
     if (!serviceSlug.value) return;
-    void Promise.all([loadPrices(serviceSlug.value), loadTrendData(serviceSlug.value)]);
+    void loadPrices(serviceSlug.value);
   }
 );
 </script>
@@ -264,32 +217,35 @@ watch(
       <!-- 헤더 -->
       <section class="retro-panel overflow-hidden">
         <div class="retro-titlebar">
-          <h1 class="retro-title">{{ currentService?.name || serviceSlug }} — {{ countryData.country }}</h1>
-          <span v-if="rank" class="retro-kbd text-[0.62rem]">{{ rank }}위 / {{ priceData.prices.length }}개국</span>
-        </div>
-        <div class="retro-panel-content flex items-center gap-4">
-          <span class="text-[3rem] leading-none shrink-0">{{ flag }}</span>
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-1.5 mb-1">
-              <span class="retro-kbd text-[0.62rem]">{{ countryData.currency }}</span>
-              <span class="retro-kbd text-[0.62rem]">{{ countryData.continent }}</span>
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="text-[2rem] leading-none shrink-0">{{ flag }}</span>
+            <div class="min-w-0">
+              <p class="text-tiny text-muted-foreground/70 leading-none mb-0.5">{{ currentService?.name || serviceSlug }}</p>
+              <h1 class="retro-title !text-[1rem] leading-snug">{{ countryData.country }}</h1>
             </div>
-            <p class="text-tiny text-muted-foreground">
-              데이터 기준 {{ priceData.lastUpdated }} · 환율 기준 {{ priceData.exchangeRateDate }}
-            </p>
           </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="retro-kbd">{{ countryData.currency }}</span>
+            <span class="retro-kbd capitalize">{{ countryData.continent }}</span>
+            <span v-if="rank" class="retro-kbd">{{ rank }}위 / {{ priceData.prices.length }}개국</span>
+          </div>
+        </div>
+        <div class="retro-panel-content text-right">
+          <p class="text-tiny text-muted-foreground">
+            데이터 기준 {{ priceData.lastUpdated }} · 환율 기준 {{ priceData.exchangeRateDate }}
+          </p>
         </div>
       </section>
 
       <!-- 요금제별 가격 카드 -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div
           v-for="plan in planPrices"
           :key="plan.id"
           class="retro-panel overflow-hidden border border-border/40"
         >
           <div class="retro-titlebar">
-            <span class="retro-title">{{ plan.name }}</span>
+            <span class="retro-title !text-[1rem]">{{ plan.name }}</span>
             <SavingsBadge
               v-if="plan.krw != null && plan.baseKrw != null"
               :price="plan.krw"
@@ -299,24 +255,24 @@ watch(
           <div class="p-3 space-y-2.5">
             <!-- KRW 메인 -->
             <div>
-              <p class="text-[0.62rem] uppercase tracking-wide text-muted-foreground">월 원화 환산</p>
+              <p class="text-tiny uppercase tracking-wide text-muted-foreground">월 원화 환산</p>
               <p class="text-h2 text-primary tabular-nums mt-0.5">{{ fmtKrw(plan.krw) }}</p>
             </div>
             <!-- USD + 현지가격 -->
             <div class="grid grid-cols-2 gap-2">
-              <div class="border border-border/50 px-2 py-1.5">
-                <p class="text-[0.62rem] uppercase tracking-wide text-muted-foreground">달러(USD)</p>
+              <div class="bg-background/60 border border-border/40 rounded px-2 py-1.5">
+                <p class="text-tiny uppercase tracking-wide text-muted-foreground">달러(USD)</p>
                 <p class="text-caption font-medium tabular-nums mt-0.5">{{ fmtUsd(plan.usd) }}</p>
               </div>
-              <div class="border border-border/50 px-2 py-1.5">
-                <p class="text-[0.62rem] uppercase tracking-wide text-muted-foreground">현지 가격</p>
+              <div class="bg-background/60 border border-border/40 rounded px-2 py-1.5">
+                <p class="text-tiny uppercase tracking-wide text-muted-foreground">현지 가격</p>
                 <p class="text-caption font-medium tabular-nums mt-0.5">{{ fmtLocal(plan.localMonthly, countryData.currency) }}</p>
               </div>
             </div>
             <!-- 한국 대비 -->
-            <div v-if="plan.baseKrw != null" class="border-t border-border/50 pt-2 flex items-center justify-between">
+            <div v-if="plan.baseKrw != null" class="border-t border-border/40 pt-2 flex items-center justify-between">
               <div>
-                <p class="text-[0.62rem] text-muted-foreground">한국 {{ fmtKrw(plan.baseKrw) }}/월</p>
+                <p class="text-tiny text-muted-foreground">한국 {{ fmtKrw(plan.baseKrw) }}/월</p>
                 <p v-if="plan.krw != null && plan.baseKrw > plan.krw" class="text-caption font-semibold text-savings mt-0.5">
                   월 {{ fmtKrw(plan.baseKrw - plan.krw) }} 절약
                 </p>
@@ -329,58 +285,10 @@ watch(
         </div>
       </div>
 
-      <!-- 최근 가격 변동 -->
-      <div class="retro-panel overflow-hidden border border-border/40">
-        <div class="retro-titlebar">
-          <h2 class="retro-title">최근 가격 변동</h2>
-          <span class="text-tiny text-muted-foreground">개인 요금제 기준</span>
-        </div>
-        <div class="retro-panel-content">
-          <ul v-if="countryHistory.length > 0" class="divide-y divide-border/40">
-            <li
-              v-for="(point, idx) in countryHistory"
-              :key="`${point.date}-${idx}`"
-              class="flex items-center justify-between py-2 first:pt-0 last:pb-0"
-            >
-              <span class="text-caption text-muted-foreground">{{ point.date }}</span>
-              <span class="text-caption tabular-nums font-semibold">{{ fmtKrw(point.krw) }}</span>
-            </li>
-          </ul>
-          <p v-else class="text-caption text-muted-foreground">표시할 변동 이력이 없습니다.</p>
-        </div>
-      </div>
-
-      <!-- 가격 하락 알림 -->
-      <div class="retro-panel overflow-hidden border border-border/40">
-        <div class="retro-titlebar">
-          <h2 class="retro-title">가격 하락 알림</h2>
-          <span class="retro-kbd text-[0.62rem]">베타</span>
-        </div>
-        <div class="retro-panel-content">
-          <form class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end" @submit.prevent="submitAlert">
-            <label class="sm:col-span-2 space-y-1">
-              <span class="text-tiny text-muted-foreground">이메일</span>
-              <input v-model="alertEmail" required type="email" placeholder="you@example.com" class="retro-input" />
-            </label>
-            <label class="space-y-1">
-              <span class="text-tiny text-muted-foreground">목표가 (원화)</span>
-              <input v-model="alertTargetPrice" required min="1" type="number" class="retro-input" />
-            </label>
-            <div class="sm:col-span-3">
-              <button type="submit" :disabled="alertSubmitting" class="retro-button disabled:opacity-50">
-                {{ alertSubmitting ? "신청 중..." : "알림 신청" }}
-              </button>
-            </div>
-          </form>
-          <p v-if="alertError" class="text-caption text-destructive mt-3">{{ alertError }}</p>
-          <p v-if="alertSuccess" class="text-caption text-savings mt-3">{{ alertSuccess }}</p>
-        </div>
-      </div>
-
       <!-- 같은 대륙 국가 비교 -->
       <div v-if="nearbyCountries.length > 0" class="retro-panel overflow-hidden border border-border/40">
         <div class="retro-titlebar">
-          <h2 class="retro-title">같은 대륙 국가 비교</h2>
+          <h2 class="retro-title !text-[1rem]">같은 대륙 국가 비교</h2>
           <span class="text-tiny text-muted-foreground">개인 요금제 · 가격순 상위 5개</span>
         </div>
         <Table>
@@ -403,7 +311,7 @@ watch(
                   :to="`/${serviceSlug}/${nearby.countryCode.toLowerCase()}`"
                   class="inline-flex items-center gap-2 transition-colors font-semibold group-hover/row:text-primary"
                 >
-                  <span class="text-body">{{ countryFlag(nearby.countryCode) }}</span>
+                  <span class="text-[1.5rem] leading-none">{{ countryFlag(nearby.countryCode) }}</span>
                   <span class="text-caption">{{ nearby.country }}</span>
                 </RouterLink>
               </TableCell>

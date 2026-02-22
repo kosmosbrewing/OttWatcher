@@ -23,7 +23,7 @@ const props = defineProps<{
 
 function fmtKrw(val: number | null | undefined): string {
   if (val == null) return "-";
-  return `₩${Math.round(val).toLocaleString("ko-KR")}`;
+  return `${Math.round(val).toLocaleString("ko-KR")}원`;
 }
 
 function fmtUsd(val: number | null | undefined): string {

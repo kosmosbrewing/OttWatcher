@@ -48,7 +48,7 @@ useSEO({
 
 function fmtKrw(value: number | null | undefined): string {
   if (value == null) return "-";
-  return `₩${formatNumber(Math.round(value))}`;
+  return `${formatNumber(Math.round(value))}원`;
 }
 
 function fmtLocal(row: TrendRow): string {

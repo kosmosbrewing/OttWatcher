@@ -7,6 +7,7 @@ const MY_PLAN_STORAGE_KEY = "ottwatcher:myplan:v1";
 const myPlanSchema = z.object({
   serviceSlug: z.string().regex(/^[a-z0-9-]+$/),
   planId: z.string().min(1).max(64),
+  countryCode: z.string().regex(/^[A-Z]{2}$/).optional(),
   hasChosen: z.literal(true),
 });
 
@@ -14,6 +15,7 @@ type MyPlanPayload = z.infer<typeof myPlanSchema>;
 
 const selectedService = ref<string>("");
 const selectedPlan = ref<string>("");
+const selectedCountry = ref<string>("KR");
 const hasChosen = ref(false);
 
 function isBrowser(): boolean {
@@ -23,6 +25,7 @@ function isBrowser(): boolean {
 function resetState(): void {
   selectedService.value = "";
   selectedPlan.value = "";
+  selectedCountry.value = "KR";
   hasChosen.value = false;
 }
 
@@ -78,17 +81,20 @@ function hydrateMyPlan(activeServices: ServiceInfo[]): void {
 
   selectedService.value = parsed.data.serviceSlug;
   selectedPlan.value = parsed.data.planId;
+  selectedCountry.value = parsed.data.countryCode ?? "KR";
   hasChosen.value = true;
 }
 
 function saveMyPlan(
   serviceSlug: string,
   planId: string,
-  activeServices: ServiceInfo[]
+  activeServices: ServiceInfo[],
+  countryCode = "KR"
 ): void {
   const parsed = myPlanSchema.safeParse({
     serviceSlug,
     planId,
+    countryCode: countryCode.toUpperCase(),
     hasChosen: true,
   });
 
@@ -106,6 +112,7 @@ function saveMyPlan(
 
   selectedService.value = parsed.data.serviceSlug;
   selectedPlan.value = parsed.data.planId;
+  selectedCountry.value = parsed.data.countryCode ?? "KR";
   hasChosen.value = true;
 }
 
@@ -113,6 +120,7 @@ export function useMyPlan() {
   return {
     selectedService,
     selectedPlan,
+    selectedCountry,
     hasChosen,
     hydrateMyPlan,
     saveMyPlan,

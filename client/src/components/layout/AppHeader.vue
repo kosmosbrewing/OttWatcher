@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import { Moon, Sun } from "lucide-vue-next";
 import { useHeadlineMessages } from "@/composables/useHeadlineMessages";
+
+const route = useRoute();
+const router = useRouter();
+
+const SERVICE_SLUG = "youtube-premium";
 
 const anchorLinks = [
   { hash: "#compare", label: "국가별 가격 비교" },
@@ -9,10 +15,18 @@ const anchorLinks = [
   { hash: "#faq",     label: "자주 묻는 질문" },
 ] as const;
 
-function scrollTo(hash: string): void {
+function scrollToHash(hash: string): void {
   const el = document.querySelector(hash);
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function handleAnchorClick(hash: string): Promise<void> {
+  if (route.path === `/${SERVICE_SLUG}`) {
+    scrollToHash(hash);
+  } else {
+    await router.push(`/${SERVICE_SLUG}`);
+    await nextTick();
+    setTimeout(() => scrollToHash(hash), 150);
   }
 }
 
@@ -79,7 +93,7 @@ onUnmounted(() => {
         <div class="retro-titlebar h-11 border-b-0 px-2 bg-transparent">
           <div class="flex h-full w-full items-center gap-4">
             <span class="h-8 w-8 shrink-0" aria-hidden="true"></span>
-            <div class="flex h-full flex-1 items-center justify-center text-center font-title text-[14px] sm:text-[16px] overflow-hidden">
+            <div class="flex h-full flex-1 items-center justify-center text-center font-title text-caption sm:text-body overflow-hidden">
               <Transition name="headline-fade" mode="out-in">
                 <span
                   :key="currentHeadline"
@@ -102,29 +116,35 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-
-    <nav
-      class="h-10 w-full bg-gradient-to-r from-primary/90 to-primary/45"
-      aria-label="섹션 이동"
-    >
-      <div class="container h-full">
-        <div
-          class="flex h-full items-center gap-4 overflow-x-auto"
-          style="scrollbar-width: none"
-        >
-          <a
-            v-for="anchor in anchorLinks"
-            :key="anchor.hash"
-            :href="anchor.hash"
-            class="shrink-0 text-[14px] font-bold text-primary-foreground/80 transition-colors hover:text-primary-foreground"
-            @click.prevent="scrollTo(anchor.hash)"
-          >
-            {{ anchor.label }}
-          </a>
-        </div>
-      </div>
-    </nav>
   </header>
+
+  <nav
+    class="sticky top-0 z-50 h-10 w-full bg-gradient-to-r from-primary/90 to-primary/45"
+    aria-label="섹션 이동"
+  >
+    <div class="container h-full">
+      <div
+        class="flex h-full items-center gap-4 overflow-x-auto"
+        style="scrollbar-width: none"
+      >
+        <button
+          v-for="anchor in anchorLinks"
+          :key="anchor.hash"
+          type="button"
+          class="shrink-0 text-caption font-bold text-primary-foreground/95 transition-colors hover:text-primary-foreground"
+          @click="handleAnchorClick(anchor.hash)"
+        >
+          {{ anchor.label }}
+        </button>
+        <RouterLink
+          to="/community"
+          class="shrink-0 text-caption font-bold text-primary-foreground/95 transition-colors hover:text-primary-foreground"
+        >
+          커뮤니티
+        </RouterLink>
+      </div>
+    </div>
+  </nav>
 </template>
 
 <style scoped>

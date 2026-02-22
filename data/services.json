@@ -9,7 +9,7 @@
       "plans": [
         { "id": "individual", "name": "프리미엄", "nameEn": "Premium" },
         { "id": "family", "name": "패밀리", "nameEn": "Family" },
-        { "id": "lite", "name": "라이트", "nameEn": "Lite" },
+        { "id": "lite", "name": "프리미엄 라이트", "nameEn": "Premium Lite" },
         { "id": "duo", "name": "듀오", "nameEn": "Duo" }
       ],
       "dataFile": "youtube-premium.json",

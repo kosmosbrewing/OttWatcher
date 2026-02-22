@@ -22,6 +22,12 @@ export type {
   CommunityComment,
   CommentsResponse,
   CommunityThreadResponse,
+  LikeResponse,
+  CountryVotePayload,
+  CountryVoteResult,
+  CountryVoteResultsResponse,
+  CountryVoteResponse,
+  PopularPostsResponse,
 } from "./types";
 
 // 서비스
@@ -37,11 +43,17 @@ export { fetchTrends } from "./trends";
 export {
   subscribePriceAlert,
   fetchCommunityPosts,
+  fetchAllCommunityPosts,
   fetchCommunityPost,
   fetchPostComments,
   fetchCommunityThread,
   submitComment,
   submitCommunityPost,
+  togglePostLike,
+  toggleCommentLike,
+  fetchPopularPosts,
+  submitCountryVote,
+  fetchVoteResults,
 } from "./community";
 
 // default export (하위 호환)
@@ -51,11 +63,17 @@ import { fetchTrends } from "./trends";
 import {
   subscribePriceAlert,
   fetchCommunityPosts,
+  fetchAllCommunityPosts,
   fetchCommunityPost,
   fetchCommunityThread,
   fetchPostComments,
   submitCommunityPost,
   submitComment,
+  togglePostLike,
+  toggleCommentLike,
+  fetchPopularPosts,
+  submitCountryVote,
+  fetchVoteResults,
 } from "./community";
 
 const api = {
@@ -64,11 +82,17 @@ const api = {
   fetchTrends,
   subscribePriceAlert,
   fetchCommunityPosts,
+  fetchAllCommunityPosts,
   fetchCommunityPost,
   fetchCommunityThread,
   fetchPostComments,
   submitCommunityPost,
   submitComment,
+  togglePostLike,
+  toggleCommentLike,
+  fetchPopularPosts,
+  submitCountryVote,
+  fetchVoteResults,
 };
 
 export default api;

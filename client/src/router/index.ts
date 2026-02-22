@@ -5,8 +5,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "Home",
-    component: () => import("@/views/HomeView.vue"),
-    meta: { title: "OTT 구독료 국가별 가격 비교 | 유튜브 프리미엄·넷플릭스 나라별 최저가" },
+    redirect: "/youtube-premium",
   },
   // 정적 라우트를 동적 라우트보다 먼저 배치
   {
@@ -24,12 +23,18 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/report",
     name: "ReportRedirect",
-    redirect: "/",
+    redirect: "/youtube-premium",
   },
   {
     path: "/changelog",
     name: "ChangelogRedirect",
-    redirect: "/",
+    redirect: "/youtube-premium",
+  },
+  {
+    path: "/community",
+    name: "CommunityList",
+    component: () => import("@/views/CommunityListView.vue"),
+    meta: { title: "커뮤니티 | OTT 가격 비교" },
   },
   {
     path: "/community/:postId",
