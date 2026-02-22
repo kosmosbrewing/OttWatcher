@@ -48,6 +48,8 @@ export function useLike(postId: Ref<string>, initialCount = 0) {
   async function toggle(): Promise<void> {
     if (toggling.value || !postId.value) return;
 
+    // 비동기 구간에서 postId가 바뀌어도 올바른 ID를 사용하도록 스냅샷
+    const currentId = postId.value;
     toggling.value = true;
 
     // 낙관적 업데이트
@@ -61,14 +63,14 @@ export function useLike(postId: Ref<string>, initialCount = 0) {
     // localStorage 즉시 반영
     const set = readLikedSet();
     if (liked.value) {
-      set.add(postId.value);
+      set.add(currentId);
     } else {
-      set.delete(postId.value);
+      set.delete(currentId);
     }
     writeLikedSet(set);
 
     try {
-      const result = await togglePostLike(postId.value);
+      const result = await togglePostLike(currentId);
       // 서버 응답으로 동기화
       liked.value = result.liked;
       likeCount.value = result.likeCount;
@@ -76,9 +78,9 @@ export function useLike(postId: Ref<string>, initialCount = 0) {
       // localStorage를 서버 상태와 동기화
       const freshSet = readLikedSet();
       if (result.liked) {
-        freshSet.add(postId.value);
+        freshSet.add(currentId);
       } else {
-        freshSet.delete(postId.value);
+        freshSet.delete(currentId);
       }
       writeLikedSet(freshSet);
     } catch {
@@ -88,9 +90,9 @@ export function useLike(postId: Ref<string>, initialCount = 0) {
 
       const rollbackSet = readLikedSet();
       if (prevLiked) {
-        rollbackSet.add(postId.value);
+        rollbackSet.add(currentId);
       } else {
-        rollbackSet.delete(postId.value);
+        rollbackSet.delete(currentId);
       }
       writeLikedSet(rollbackSet);
     } finally {

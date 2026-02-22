@@ -62,6 +62,13 @@ function buildFallbackHtml(meta) {
 }
 
 function routeToMeta(route, countryMap) {
+  const youtubePremiumMeta = {
+    title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위",
+    description:
+      "유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
+    heading: "유튜브 프리미엄 국가별·나라별 가격 비교",
+  };
+
   const defaultMeta = {
     title: "OTT 구독료 국가별 가격 비교 | 유튜브 프리미엄·넷플릭스 나라별 최저가",
     description:
@@ -117,6 +124,18 @@ function routeToMeta(route, countryMap) {
     };
   }
 
+  if (route === "/" || route === `/${SERVICE_SLUG}`) {
+    return {
+      ...youtubePremiumMeta,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "유튜브 프리미엄 국가별 가격 비교",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
   if (route === `/${SERVICE_SLUG}/trends`) {
     return {
       title: "유튜브 프리미엄 가격 변동 트렌드 · 국가별 구독료 변화 | OTT 가격 비교",
@@ -167,21 +186,6 @@ function routeToMeta(route, countryMap) {
             ],
           },
         ],
-      },
-    };
-  }
-
-  if (route === `/${SERVICE_SLUG}`) {
-    return {
-      title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위",
-      description:
-        "유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
-      heading: "유튜브 프리미엄 국가별·나라별 가격 비교",
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "WebPage",
-        name: "유튜브 프리미엄 국가별 가격 비교",
-        url: `${SITE_URL}${route}`,
       },
     };
   }

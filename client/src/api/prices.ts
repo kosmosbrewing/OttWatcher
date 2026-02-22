@@ -64,7 +64,6 @@ async function doFetch(serviceSlug: string): Promise<PricesResponse> {
   try {
     const response = await fetch(`${API_BASE}/prices/${serviceSlug}`, {
       headers: { Accept: "application/json" },
-      cache: "no-cache",
       signal: controller.signal,
     });
 

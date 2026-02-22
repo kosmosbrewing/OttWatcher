@@ -23,7 +23,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function getNumber(value: unknown): number | null {
-  return typeof value === "number" && !Number.isNaN(value) ? value : null;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 export function ensureValidSlug(serviceSlug: string): void {
