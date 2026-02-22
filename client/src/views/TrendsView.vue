@@ -26,7 +26,7 @@ const currentService = computed(() =>
 
 const trendHeading = computed(() => {
   if (serviceSlug.value === "youtube-premium") {
-    return "유튜브 프리미엄 가격 트렌드";
+    return "YouTube Premium 가격 트렌드";
   }
   return `${currentService.value?.name || serviceSlug.value} 가격 트렌드`;
 });

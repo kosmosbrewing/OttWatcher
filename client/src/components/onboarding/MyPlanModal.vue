@@ -164,7 +164,7 @@ onUnmounted(() => {
           <!-- Step 1: 요금제 선택 -->
           <div v-else-if="step === 1">
             <p class="text-sm text-muted-foreground mb-4">
-              유튜브 프리미엄 요금제를 선택해 주세요.
+              YouTube Premium 요금제를 선택해 주세요.
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
