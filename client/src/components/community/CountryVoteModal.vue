@@ -100,7 +100,7 @@ async function handleVote(countryCode: string): Promise<void> {
         <div class="absolute inset-0 bg-black/60" @click="emit('close')" />
         <div class="relative z-10 w-full max-w-md sm:max-w-lg mx-4 max-h-[80vh] overflow-hidden retro-panel border border-border">
           <div class="retro-titlebar flex items-center justify-between">
-            <h3 class="retro-title !text-[1rem]">YouTube Premium 최적 국가 투표</h3>
+            <h3 class="retro-title !text-[1rem]">Youtube Premium 최적 국가 투표</h3>
             <button class="retro-kbd text-xs" @click="emit('close')">ESC</button>
           </div>
 

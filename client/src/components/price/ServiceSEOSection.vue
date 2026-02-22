@@ -53,7 +53,7 @@ const faqItems = computed<FaqItem[]>(() => {
     { q: `${props.serviceName} ${props.selectedPlanLabel} 요금제 기준 가장 저렴한 나라는?`, a: cheapestAnswer },
     {
       q: isYoutubePremium && isKoreaBase
-        ? "한국 YouTube Premium 요금은 얼마인가요?"
+        ? "한국 Youtube Premium 요금은 얼마인가요?"
         : isKoreaBase
         ? `한국 ${props.serviceName} ${props.selectedPlanLabel} 요금제는?`
         : `${props.baseCountryName} ${props.serviceName} ${props.selectedPlanLabel} 요금제는?`,
