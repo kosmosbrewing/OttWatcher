@@ -234,18 +234,9 @@ async function onShareKakao(): Promise<void> {
     const Kakao = w.Kakao as {
       isInitialized: () => boolean;
       init: (key: string) => void;
-      Share: {
-        sendDefault: (opts: Record<string, unknown>) => void;
-        sendScrap?: (opts: { requestUrl: string }) => void;
-      };
+      Share: { sendDefault: (opts: Record<string, unknown>) => void };
     };
     if (!Kakao.isInitialized()) Kakao.init(kakaoKey);
-
-    // sendScrap은 OG 링크 자체를 공유해 수신자 측 이동 동작이 가장 안정적이다.
-    if (typeof Kakao.Share.sendScrap === "function") {
-      Kakao.Share.sendScrap({ requestUrl: sharePageUrl.value });
-      return;
-    }
 
     const cheapest = shareTop3Rows.value[0];
     const savings = compareSavingsPercent.value;
