@@ -26,7 +26,11 @@ export function getCountryEntries() {
     .map((row) => {
       const countryCode = String(row?.countryCode || "").toLowerCase();
       const country = String(row?.country || "").trim();
-      const krw = Number(row?.converted?.individual?.krw);
+      // KRW 국가는 환율 변환 없이 원본 가격 사용 (USD→KRW 재변환 오차 방지)
+      const isKrw = String(row?.currency || "").toUpperCase() === "KRW";
+      const krw = isKrw
+        ? Number(row?.plans?.individual?.monthly)
+        : Number(row?.converted?.individual?.krw);
       if (!countryCode || !country) return null;
       return {
         countryCode,

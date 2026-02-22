@@ -58,6 +58,12 @@ function savingsPercent(price, base) {
   return Math.round(((base - price) / base) * 100);
 }
 
+function countryFlag(code) {
+  return [...code.toUpperCase()].map((c) =>
+    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
+  ).join("");
+}
+
 // ─── SVG → PNG 변환 ─────────────────────────────────────────────────────────
 async function renderPng(jsx) {
   const svg = await satori(jsx, { width: WIDTH, height: HEIGHT, fonts });
@@ -74,8 +80,8 @@ function buildServiceOgMarkup(entries, krEntry) {
     .sort((a, b) => a.krw - b.krw);
   const top3 = sorted.slice(0, 3);
   const baseKrw = krEntry?.krw ?? null;
-  const medals = ["1위", "2위", "3위"];
-  const medalColors = [COLORS.youtube, COLORS.primary, COLORS.primary];
+  const MEDAL_BG = ["#FFD700", "#C8C8C8", "#CD8C3C"];
+  const MEDAL_FG = ["#7B5200", "#505050", "#5C3500"];
 
   return {
     type: "div",
@@ -141,6 +147,7 @@ function buildServiceOgMarkup(entries, krEntry) {
             },
             children: top3.map((entry, i) => {
               const pct = savingsPercent(entry.krw, baseKrw);
+              const savingsAmt = baseKrw != null && entry.krw != null ? Math.round(baseKrw - entry.krw) : 0;
               return {
                 type: "div",
                 props: {
@@ -169,25 +176,51 @@ function buildServiceOgMarkup(entries, krEntry) {
                             type: "div",
                             props: {
                               style: {
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "42px",
+                                height: "42px",
+                                borderRadius: "50%",
+                                backgroundColor: MEDAL_BG[i],
                                 fontFamily: "GmarketSans",
-                                fontSize: "24px",
+                                fontSize: "22px",
                                 fontWeight: 700,
-                                color: medalColors[i],
-                                minWidth: "52px",
+                                color: MEDAL_FG[i],
+                                flexShrink: 0,
                               },
-                              children: medals[i],
+                              children: String(i + 1),
                             },
                           },
                           {
                             type: "div",
                             props: {
                               style: {
-                                fontFamily: "GmarketSans",
-                                fontSize: "28px",
-                                fontWeight: 700,
-                                color: COLORS.foreground,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
                               },
-                              children: entry.country,
+                              children: [
+                                {
+                                  type: "div",
+                                  props: {
+                                    style: { fontSize: "28px", lineHeight: "1" },
+                                    children: countryFlag(entry.countryCode),
+                                  },
+                                },
+                                {
+                                  type: "div",
+                                  props: {
+                                    style: {
+                                      fontFamily: "GmarketSans",
+                                      fontSize: "26px",
+                                      fontWeight: 700,
+                                      color: COLORS.foreground,
+                                    },
+                                    children: entry.country,
+                                  },
+                                },
+                              ],
                             },
                           },
                         ],
@@ -219,14 +252,38 @@ function buildServiceOgMarkup(entries, krEntry) {
                                 type: "div",
                                 props: {
                                   style: {
-                                    fontSize: "22px",
-                                    fontWeight: 700,
-                                    color: COLORS.savings,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "flex-end",
+                                    gap: "2px",
                                     backgroundColor: "#f0fdf4",
-                                    padding: "4px 10px",
+                                    padding: "6px 14px",
                                     borderRadius: "6px",
                                   },
-                                  children: `-${pct}%`,
+                                  children: [
+                                    {
+                                      type: "div",
+                                      props: {
+                                        style: {
+                                          fontSize: "22px",
+                                          fontWeight: 700,
+                                          color: COLORS.savings,
+                                        },
+                                        children: `-${pct}%`,
+                                      },
+                                    },
+                                    {
+                                      type: "div",
+                                      props: {
+                                        style: {
+                                          fontSize: "15px",
+                                          fontWeight: 400,
+                                          color: COLORS.savings,
+                                        },
+                                        children: `월 ${fmtKrw(savingsAmt)} 절약`,
+                                      },
+                                    },
+                                  ],
                                 },
                               }
                             : null,
