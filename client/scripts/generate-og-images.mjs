@@ -148,7 +148,7 @@ function buildServiceOgMarkup(entries, krEntry) {
                     fontWeight: 700,
                     color: COLORS.muted,
                   },
-                  children: "국가별 구독료 최저가 순위",
+                  children: "글로벌 가격 랭킹",
                 },
               },
             ],
