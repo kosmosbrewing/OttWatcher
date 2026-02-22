@@ -39,7 +39,7 @@ type KakaoSharePayload = {
     imageHeight: number;
     link: { mobileWebUrl: string; webUrl: string };
   };
-  buttons: Array<{ title: string; link: { mobileWebUrl: string; webUrl: string } }>;
+  buttonTitle?: string;
 };
 
 type KakaoWindow = Window & {
@@ -315,7 +315,7 @@ async function onShareKakao(): Promise<void> {
         imageHeight: 400,
         link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value },
       },
-      buttons: [{ title: "웹으로 보기", link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value } }],
+      buttonTitle: "웹으로 보기",
     };
 
     const payloadSize = payloadByteLength(payload);
