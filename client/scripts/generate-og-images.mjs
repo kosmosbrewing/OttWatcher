@@ -64,9 +64,28 @@ function countryFlag(code) {
   ).join("");
 }
 
+// ─── Twemoji: Satori 이모지(국기, 메달 등) 렌더링 지원 ────────────────────
+async function loadAdditionalAsset(code, segment) {
+  if (code === "emoji") {
+    const codePoints = [...segment]
+      .map((c) => c.codePointAt(0).toString(16).padStart(4, "0"))
+      .join("-")
+      .replace(/-fe0f/g, ""); // variation selector 제거
+    const url = `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${codePoints}.svg`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return segment;
+      const svg = await res.text();
+      return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+    } catch {
+      return segment;
+    }
+  }
+}
+
 // ─── SVG → PNG 변환 ─────────────────────────────────────────────────────────
 async function renderPng(jsx) {
-  const svg = await satori(jsx, { width: WIDTH, height: HEIGHT, fonts });
+  const svg = await satori(jsx, { width: WIDTH, height: HEIGHT, fonts, loadAdditionalAsset });
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: WIDTH },
   });
@@ -80,8 +99,7 @@ function buildServiceOgMarkup(entries, krEntry) {
     .sort((a, b) => a.krw - b.krw);
   const top3 = sorted.slice(0, 3);
   const baseKrw = krEntry?.krw ?? null;
-  const MEDAL_BG = ["#FFD700", "#C8C8C8", "#CD8C3C"];
-  const MEDAL_FG = ["#7B5200", "#505050", "#5C3500"];
+  const MEDALS = ["🥇", "🥈", "🥉"];
 
   return {
     type: "div",
@@ -176,20 +194,11 @@ function buildServiceOgMarkup(entries, krEntry) {
                             type: "div",
                             props: {
                               style: {
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: "42px",
-                                height: "42px",
-                                borderRadius: "50%",
-                                backgroundColor: MEDAL_BG[i],
-                                fontFamily: "GmarketSans",
-                                fontSize: "22px",
-                                fontWeight: 700,
-                                color: MEDAL_FG[i],
+                                fontSize: "38px",
+                                lineHeight: "1",
                                 flexShrink: 0,
                               },
-                              children: String(i + 1),
+                              children: MEDALS[i],
                             },
                           },
                           {
