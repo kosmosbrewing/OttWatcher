@@ -63,7 +63,7 @@
   }
 
   .retro-title {
-    @apply text-caption font-semibold tracking-normal font-sans;
+    @apply text-caption font-semibold tracking-normal font-title;
   }
 
   .retro-kbd {
