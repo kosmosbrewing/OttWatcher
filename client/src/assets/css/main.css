@@ -7,7 +7,7 @@
 /* woff2 subset(한글+ASCII) → woff 원본 순서로 fallback */
 @font-face {
   font-family: "Pretendard";
-  src: url("/fonts/Pretendard-Regular-subset.woff2") format("woff2"),
+  src: url("/fonts/Pretendard-Regular-subset-v2.woff2") format("woff2"),
        url("/fonts/Pretendard-Regular.woff") format("woff");
   font-weight: 400;
   font-style: normal;
@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: "Pretendard";
-  src: url("/fonts/Pretendard-Bold-subset.woff2") format("woff2"),
+  src: url("/fonts/Pretendard-Bold-subset-v2.woff2") format("woff2"),
        url("/fonts/Pretendard-Bold.woff") format("woff");
   font-weight: 700;
   font-style: normal;
@@ -25,7 +25,7 @@
 
 @font-face {
   font-family: "GmarketSans";
-  src: url("/fonts/GmarketSansBold-subset.woff2") format("woff2"),
+  src: url("/fonts/GmarketSansBold-subset-v2.woff2") format("woff2"),
        url("/fonts/GmarketSansBold.woff") format("woff");
   font-weight: 700;
   font-style: normal;

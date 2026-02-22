@@ -71,6 +71,19 @@ const SEO_MAP: Record<string, { title: string; description: string }> = {
 };
 
 const serviceName = computed(() => currentService.value?.name || serviceSlug.value);
+const loadingServiceName = computed(() => {
+  if (currentService.value?.name) return currentService.value.name;
+  if (serviceSlug.value === "youtube-premium") return "YouTube Premium";
+  if (!serviceSlug.value) return "서비스";
+
+  return serviceSlug.value
+    .split("-")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+});
+const loadingCompareTitle = computed(() => `${loadingServiceName.value} 글로벌 가격 비교`);
+const loadingRankTitle = computed(() => `${loadingServiceName.value} 글로벌 랭킹`);
 
 const pageTitle = computed(() =>
   SEO_MAP[serviceSlug.value]?.title ||
@@ -384,10 +397,65 @@ watch(serviceSlug, async (slug) => {
 <template>
   <div class="container py-6">
     <!-- 로딩 -->
-    <div v-if="loading" class="third-rate-board">
-      <div class="space-y-2 mt-4 animate-pulse" aria-hidden="true">
-        <div v-for="i in 10" :key="i" class="h-10 rounded bg-muted/70" />
-      </div>
+    <div
+      v-if="loading || (!priceData && !error)"
+      class="third-rate-board space-y-4 animate-pulse min-h-[1100px]"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <Card class="retro-panel overflow-hidden">
+        <div class="retro-titlebar">
+          <h2 class="retro-title">{{ loadingCompareTitle }}</h2>
+        </div>
+        <CardContent class="grid gap-3 md:grid-cols-[minmax(0,1fr)_56px_minmax(0,1fr)] md:items-stretch">
+          <div class="h-[180px] rounded bg-muted/70" />
+          <div class="hidden h-[180px] rounded bg-muted/70 md:block" />
+          <div class="h-[180px] rounded bg-muted/70" />
+        </CardContent>
+      </Card>
+
+      <Card class="retro-panel overflow-hidden">
+        <CardContent class="h-20" />
+      </Card>
+
+      <section class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div class="space-y-4">
+          <Card class="retro-panel overflow-hidden">
+            <div class="retro-titlebar">
+              <h2 class="retro-title">{{ loadingRankTitle }}</h2>
+            </div>
+            <CardContent class="space-y-2">
+              <div
+                v-for="i in 10"
+                :key="`loading-rank-${i}`"
+                class="h-10 rounded bg-muted/70"
+              />
+            </CardContent>
+          </Card>
+
+          <Card class="retro-panel overflow-hidden">
+            <div class="retro-titlebar">
+              <h2 class="retro-title">자주 묻는 질문</h2>
+            </div>
+            <CardContent class="space-y-2">
+              <div
+                v-for="i in 4"
+                :key="`loading-faq-${i}`"
+                class="h-11 rounded bg-muted/70"
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        <aside class="space-y-4">
+          <div class="retro-panel overflow-hidden">
+            <div class="retro-panel-content h-[220px] rounded bg-muted/70" />
+          </div>
+          <div class="retro-panel overflow-hidden">
+            <div class="retro-panel-content h-[160px] rounded bg-muted/70" />
+          </div>
+        </aside>
+      </section>
     </div>
 
     <!-- 에러 -->

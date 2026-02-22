@@ -9,8 +9,11 @@
     <meta name="description" content="유튜브 프리미엄(YouTube Premium) 국가별·나라별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준으로 한국 대비 절약률까지 제공합니다." />
     <link rel="canonical" href="https://ott.shakilabs.com/" />
 
-    <!-- 제목 폰트는 preload로 초기 렌더 안정화 -->
-    <link rel="preload" href="/fonts/GmarketSansBold-subset.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://api.shakilabs.com" crossorigin />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin />
+
+    <!-- 폰트는 CSS @font-face 전략으로 로딩 -->
 
     <!-- OG 태그 -->
     <meta property="og:title" content="유튜브 프리미엄 글로벌 가격 비교 · 나라별 구독료 최저가 순위" />
