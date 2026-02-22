@@ -3,7 +3,7 @@ import { ref, computed, watch } from "vue";
 import { showAlert } from "@/composables/useAlert";
 import { useMyPlan } from "@/composables/useMyPlan";
 import { formatNumber, countryFlag } from "@/lib/utils";
-import { getSiteUrl } from "@/lib/site";
+import { DEFAULT_SITE_URL, getSiteUrl } from "@/lib/site";
 import { Card, CardContent } from "@/components/ui/card";
 import { Share2 } from "lucide-vue-next";
 import ShareModal from "@/components/share/ShareModal.vue";
@@ -195,14 +195,31 @@ const shareTop3Rows = computed<ShareRow[]>(() =>
     .map((r) => ({ countryCode: r.countryCode, country: r.country, krw: r.krw }))
 );
 
-const sharePageUrl = computed(() => `${siteUrl}/${props.serviceSlug}`);
+function resolveSharePageUrl(): string {
+  const rawSlug = typeof props.serviceSlug === "string" ? props.serviceSlug.trim() : "";
+  const slug = rawSlug || "youtube-premium";
+  try {
+    return new URL(`/${slug}`, DEFAULT_SITE_URL).toString();
+  } catch {
+    return `${DEFAULT_SITE_URL}/youtube-premium`;
+  }
+}
+
+const sharePageUrl = computed(() => resolveSharePageUrl());
+// 카카오 공유는 항상 랭킹 이미지 고정 — 비교 상태는 경우의 수가 많아 동적 생성 불가
+const shareImageUrl = computed(() => {
+  const rawSlug = typeof props.serviceSlug === "string" ? props.serviceSlug.trim() : "";
+  const slug = rawSlug || "youtube-premium";
+  return `${siteUrl}/og/v2/${slug}.png`;
+});
 const shareTitle = computed(() => `${props.serviceName} 글로벌 랭킹`);
 
 async function onShareKakao(): Promise<void> {
   if (kakaoBusy.value) return;
   kakaoBusy.value = true;
   try {
-    const kakaoKey = (import.meta.env as Record<string, string>).VITE_KAKAO_JS_KEY;
+    const env = import.meta.env as Record<string, string>;
+    const kakaoKey = env.VITE_KAKAO_JS_KEY || env.VITE_KAKAO_JAVASCRIPT_KEY;
     if (!kakaoKey) { showAlert("카카오 공유 설정이 없습니다.", { type: "error" }); return; }
     const w = window as unknown as Record<string, unknown>;
     if (!w.Kakao) {
@@ -223,7 +240,7 @@ async function onShareKakao(): Promise<void> {
 
     const cheapest = shareTop3Rows.value[0];
     const savings = compareSavingsPercent.value;
-    const siteDomain = new URL(siteUrl).hostname;
+    const siteDomain = new URL(sharePageUrl.value).hostname;
     const descBase = cheapest
       ? `최저가: ${cheapest.country} ${fmtKrw(cheapest.krw)}/월${savings != null && savings > 0 ? ` (${savings}% 절약)` : ""}`
       : `${props.serviceName} 국가별 가격을 비교해보세요`;
@@ -231,8 +248,8 @@ async function onShareKakao(): Promise<void> {
       objectType: "feed",
       content: {
         title: shareTitle.value,
-        description: `${descBase}\n${siteDomain}`,
-        imageUrl: `${siteUrl}/og/${props.serviceSlug}.png`,
+        description: `${descBase}\n${siteDomain}\n${sharePageUrl.value}`,
+        imageUrl: shareImageUrl.value,
         imageWidth: 800,
         imageHeight: 400,
         link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value },

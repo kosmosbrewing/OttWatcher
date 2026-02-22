@@ -10,8 +10,8 @@ const router = useRouter();
 const SERVICE_SLUG = "youtube-premium";
 
 const anchorLinks = [
-  { hash: "#compare", label: "국가별 가격 비교" },
-  { hash: "#ranking", label: "국가별 가격 랭킹" },
+  { hash: "#compare", label: "글로벌 가격 비교" },
+  { hash: "#ranking", label: "글로벌 랭킹" },
   { hash: "#faq",     label: "자주 묻는 질문" },
 ] as const;
 

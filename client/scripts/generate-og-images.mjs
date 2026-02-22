@@ -64,35 +64,68 @@ function countryFlag(code) {
   ).join("");
 }
 
-// ─── Twemoji: 빌드 전 emoji → base64 SVG 사전 캐시 ─────────────────────────
-const emojiCache = new Map();
+// ─── 메달: Satori div 기반 컬러 원 (img/SVG data URL은 Resvg가 미지원) ──────
+const MEDAL_CONFIGS = [
+  { bg: "#FFD700", fg: "#7B5200" },
+  { bg: "#C8C8C8", fg: "#505050" },
+  { bg: "#CD8C3C", fg: "#5C3500" },
+];
+
+function medalDiv(index) {
+  const { bg, fg } = MEDAL_CONFIGS[index];
+  return {
+    type: "div",
+    props: {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "44px",
+        height: "44px",
+        borderRadius: "50%",
+        backgroundColor: bg,
+        fontFamily: "GmarketSans",
+        fontSize: "22px",
+        fontWeight: 700,
+        color: fg,
+        flexShrink: 0,
+      },
+      children: String(index + 1),
+    },
+  };
+}
+
+// ─── 국기: Twemoji GitHub CDN으로 사전 캐시 ─────────────────────────────────
+const flagCache = new Map();
 
 function emojiToCodepoints(emoji) {
   return [...emoji]
     .map((c) => c.codePointAt(0).toString(16).padStart(4, "0"))
     .join("-")
-    .replace(/-fe0f/g, ""); // variation selector 제거
+    .replace(/-fe0f/g, "");
 }
 
-async function preloadEmojis(emojis) {
+async function preloadFlags(countryCodes) {
   await Promise.all(
-    [...new Set(emojis)].map(async (emoji) => {
+    [...new Set(countryCodes)].map(async (code) => {
+      const emoji = countryFlag(code);
       const cp = emojiToCodepoints(emoji);
-      const url = `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${cp}.svg`;
+      // GitHub CDN: npm CDN과 달리 실제 assets 포함
+      const url = `https://cdn.jsdelivr.net/gh/twitter/twemoji@v14.0.2/assets/svg/${cp}.svg`;
       try {
         const res = await fetch(url);
         if (!res.ok) return;
         const svg = await res.text();
-        emojiCache.set(emoji, `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`);
-      } catch { /* fallback: 이모지 생략 */ }
+        flagCache.set(code, `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`);
+      } catch { /* 국기 없으면 생략 */ }
     })
   );
 }
 
-function emojiImg(emoji, size) {
-  const src = emojiCache.get(emoji);
+function flagImg(countryCode, size = 32) {
+  const src = flagCache.get(countryCode);
   if (!src) return null;
-  return { type: "img", props: { src, width: size, height: size, style: { display: "flex" } } };
+  return { type: "img", props: { src, width: size, height: Math.round(size * 0.75), style: { display: "flex", borderRadius: "3px" } } };
 }
 
 // ─── SVG → PNG 변환 ─────────────────────────────────────────────────────────
@@ -105,13 +138,14 @@ async function renderPng(jsx) {
 }
 
 // ─── 서비스 페이지 OG (Top 3 랭킹) ─────────────────────────────────────────
-function buildServiceOgMarkup(entries, krEntry, medals) {
+function buildServiceOgMarkup(entries, krEntry) {
   const sorted = entries
     .filter((e) => e.krw != null)
     .sort((a, b) => a.krw - b.krw);
   const top3 = sorted.slice(0, 3);
   const baseKrw = krEntry?.krw ?? null;
-  const MEDALS = medals;
+  const RANK_ACCENT = [MEDAL_CONFIGS[0].bg, MEDAL_CONFIGS[1].bg, MEDAL_CONFIGS[2].bg];
+  const RANK_BG = ["#fffef5", "#ffffff", "#ffffff"];
 
   return {
     type: "div",
@@ -122,59 +156,74 @@ function buildServiceOgMarkup(entries, krEntry, medals) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        padding: "52px 64px 40px",
-        backgroundColor: COLORS.bg,
+        padding: "48px 64px 36px",
+        background: "linear-gradient(150deg, #f8fafc 0%, #eef2f7 100%)",
         fontFamily: "Pretendard",
         color: COLORS.foreground,
       },
       children: [
-        // Header
+        // Header: YouTube 레드 액센트 바 + 타이틀
         {
           type: "div",
           props: {
-            style: {
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-            },
+            style: { display: "flex", alignItems: "center", gap: "20px" },
             children: [
+              // YouTube 레드 수직 바
               {
                 type: "div",
                 props: {
                   style: {
-                    fontFamily: "GmarketSans",
-                    fontSize: "50px",
-                    fontWeight: 700,
-                    lineHeight: "1.2",
-                    color: COLORS.foreground,
+                    width: "6px",
+                    height: "64px",
+                    backgroundColor: "#FF0000",
+                    borderRadius: "4px",
+                    flexShrink: 0,
                   },
-                  children: "YouTube Premium",
                 },
               },
+              // 타이틀 블록
               {
                 type: "div",
                 props: {
-                  style: {
-                    fontFamily: "GmarketSans",
-                    fontSize: "26px",
-                    fontWeight: 700,
-                    color: COLORS.muted,
-                  },
-                  children: "글로벌 가격 랭킹",
+                  style: { display: "flex", flexDirection: "column", gap: "4px" },
+                  children: [
+                    {
+                      type: "div",
+                      props: {
+                        style: {
+                          fontFamily: "GmarketSans",
+                          fontSize: "50px",
+                          fontWeight: 700,
+                          lineHeight: "1.15",
+                          color: COLORS.foreground,
+                        },
+                        children: "YouTube Premium",
+                      },
+                    },
+                    {
+                      type: "div",
+                      props: {
+                        style: {
+                          fontFamily: "Pretendard",
+                          fontSize: "22px",
+                          fontWeight: 600,
+                          color: COLORS.muted,
+                          letterSpacing: "0.02em",
+                        },
+                        children: "글로벌 가격 랭킹",
+                      },
+                    },
+                  ],
                 },
               },
             ],
           },
         },
-        // Top 3 rows
+        // Top 3 카드
         {
           type: "div",
           props: {
-            style: {
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            },
+            style: { display: "flex", flexDirection: "column", gap: "10px" },
             children: top3.map((entry, i) => {
               const pct = savingsPercent(entry.krw, baseKrw);
               const savingsAmt = baseKrw != null && entry.krw != null ? Math.round(baseKrw - entry.krw) : 0;
@@ -186,39 +235,36 @@ function buildServiceOgMarkup(entries, krEntry, medals) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    backgroundColor: COLORS.card,
-                    border: `1.5px solid ${COLORS.border}`,
+                    backgroundColor: RANK_BG[i],
+                    borderTopWidth: "1.5px",
+                    borderTopStyle: "solid",
+                    borderTopColor: COLORS.border,
+                    borderRightWidth: "1.5px",
+                    borderRightStyle: "solid",
+                    borderRightColor: COLORS.border,
+                    borderBottomWidth: "1.5px",
+                    borderBottomStyle: "solid",
+                    borderBottomColor: COLORS.border,
+                    borderLeftWidth: "5px",
+                    borderLeftStyle: "solid",
+                    borderLeftColor: RANK_ACCENT[i],
                     borderRadius: "10px",
-                    padding: "14px 24px",
+                    padding: "14px 24px 14px 20px",
                   },
                   children: [
-                    // Left: medal + country
+                    // Left: medal + 국기 + 국가명
                     {
                       type: "div",
                       props: {
-                        style: {
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "16px",
-                        },
+                        style: { display: "flex", alignItems: "center", gap: "14px" },
                         children: [
-                          emojiImg(MEDALS[i], 40) ?? {
-                            type: "div",
-                            props: {
-                              style: { fontFamily: "GmarketSans", fontSize: "26px", fontWeight: 700, flexShrink: 0 },
-                              children: String(i + 1),
-                            },
-                          },
+                          medalDiv(i),
                           {
                             type: "div",
                             props: {
-                              style: {
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "10px",
-                              },
+                              style: { display: "flex", alignItems: "center", gap: "10px" },
                               children: [
-                                emojiImg(countryFlag(entry.countryCode), 32) ?? null,
+                                flagImg(entry.countryCode),
                                 {
                                   type: "div",
                                   props: {
@@ -237,15 +283,11 @@ function buildServiceOgMarkup(entries, krEntry, medals) {
                         ],
                       },
                     },
-                    // Right: price + savings
+                    // Right: 가격 + 절약 배지
                     {
                       type: "div",
                       props: {
-                        style: {
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "16px",
-                        },
+                        style: { display: "flex", alignItems: "center", gap: "14px" },
                         children: [
                           {
                             type: "div",
@@ -264,37 +306,19 @@ function buildServiceOgMarkup(entries, krEntry, medals) {
                                 props: {
                                   style: {
                                     display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "flex-end",
-                                    gap: "2px",
+                                    alignItems: "center",
                                     backgroundColor: "#f0fdf4",
-                                    padding: "6px 14px",
+                                    borderWidth: "1px",
+                                    borderStyle: "solid",
+                                    borderColor: "#86efac",
+                                    padding: "5px 14px",
                                     borderRadius: "6px",
+                                    fontSize: "20px",
+                                    fontWeight: 700,
+                                    color: COLORS.savings,
+                                    whiteSpace: "nowrap",
                                   },
-                                  children: [
-                                    {
-                                      type: "div",
-                                      props: {
-                                        style: {
-                                          fontSize: "22px",
-                                          fontWeight: 700,
-                                          color: COLORS.savings,
-                                        },
-                                        children: `-${pct}%`,
-                                      },
-                                    },
-                                    {
-                                      type: "div",
-                                      props: {
-                                        style: {
-                                          fontSize: "15px",
-                                          fontWeight: 400,
-                                          color: COLORS.savings,
-                                        },
-                                        children: `월 ${fmtKrw(savingsAmt)} 절약`,
-                                      },
-                                    },
-                                  ],
+                                  children: `-${pct}%  월 ${fmtKrw(savingsAmt)} 절약`,
                                 },
                               }
                             : null,
@@ -315,21 +339,23 @@ function buildServiceOgMarkup(entries, krEntry, medals) {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              borderTopWidth: "1px",
+              borderTopStyle: "solid",
+              borderTopColor: COLORS.border,
+              paddingTop: "16px",
             },
             children: [
               {
                 type: "div",
                 props: {
-                  style: { fontSize: "20px", fontWeight: 400, color: COLORS.muted },
-                  children: baseKrw
-                    ? `한국 기준 ${fmtKrw(baseKrw)}/월`
-                    : "",
+                  style: { fontSize: "18px", fontWeight: 400, color: COLORS.muted },
+                  children: baseKrw ? `한국 기준 ${fmtKrw(baseKrw)}/월` : "",
                 },
               },
               {
                 type: "div",
                 props: {
-                  style: { fontSize: "20px", fontWeight: 400, color: COLORS.muted },
+                  style: { fontSize: "18px", fontWeight: 600, color: COLORS.primary },
                   children: "ott.shakilabs.com",
                 },
               },
@@ -341,13 +367,18 @@ function buildServiceOgMarkup(entries, krEntry, medals) {
   };
 }
 
-// ─── 국가별 OG (한국 vs 해당 국가) ──────────────────────────────────────────
-function buildCountryOgMarkup(entry, krEntry) {
+// ─── 국가별 OG (히어로 가격 + 글로벌 TOP 3 랭킹) ───────────────────────────
+function buildCountryOgMarkup(entry, krEntry, allEntries) {
   const baseKrw = krEntry?.krw ?? null;
   const pct = savingsPercent(entry.krw, baseKrw);
-  const diff =
-    baseKrw && entry.krw != null ? Math.round(baseKrw - entry.krw) : 0;
+  const diff = baseKrw && entry.krw != null ? Math.round(baseKrw - entry.krw) : 0;
   const isCheaper = pct > 0;
+
+  const top3 = [...allEntries]
+    .filter((e) => e.krw != null)
+    .sort((a, b) => a.krw - b.krw)
+    .slice(0, 3);
+  const RANK_ACCENT = [MEDAL_CONFIGS[0].bg, MEDAL_CONFIGS[1].bg, MEDAL_CONFIGS[2].bg];
 
   return {
     type: "div",
@@ -358,145 +389,33 @@ function buildCountryOgMarkup(entry, krEntry) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        alignItems: "center",
-        padding: "48px 64px 36px",
-        backgroundColor: COLORS.bg,
+        padding: "44px 64px 36px",
+        background: "linear-gradient(150deg, #f8fafc 0%, #eef2f7 100%)",
         fontFamily: "Pretendard",
         color: COLORS.foreground,
       },
       children: [
-        // Title
+        // ── Header ──
         {
           type: "div",
           props: {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              fontFamily: "GmarketSans",
-              fontSize: "38px",
-              fontWeight: 700,
-              color: COLORS.foreground,
-            },
+            style: { display: "flex", alignItems: "center", gap: "20px" },
             children: [
+              { type: "div", props: { style: { width: "6px", height: "60px", backgroundColor: "#FF0000", borderRadius: "4px", flexShrink: 0 } } },
               {
                 type: "div",
                 props: {
-                  children: "YouTube Premium",
-                },
-              },
-              {
-                type: "div",
-                props: {
-                  style: { color: COLORS.muted },
-                  children: `\u00B7 ${entry.country}`,
-                },
-              },
-            ],
-          },
-        },
-        // VS comparison cards
-        {
-          type: "div",
-          props: {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "32px",
-              width: "100%",
-            },
-            children: [
-              // 한국 카드
-              {
-                type: "div",
-                props: {
-                  style: {
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "28px 44px",
-                    backgroundColor: COLORS.card,
-                    border: `1.5px solid ${COLORS.border}`,
-                    borderRadius: "14px",
-                    minWidth: "300px",
-                  },
+                  style: { display: "flex", flexDirection: "column", gap: "3px" },
                   children: [
+                    { type: "div", props: { style: { fontFamily: "GmarketSans", fontSize: "44px", fontWeight: 700, lineHeight: "1.15", color: COLORS.foreground }, children: "YouTube Premium" } },
                     {
                       type: "div",
                       props: {
-                        style: {
-                          fontSize: "24px",
-                          fontWeight: 400,
-                          color: COLORS.muted,
-                        },
-                        children: "한국",
-                      },
-                    },
-                    {
-                      type: "div",
-                      props: {
-                        style: {
-                          fontSize: "44px",
-                          fontWeight: 700,
-                          color: COLORS.muted,
-                        },
-                        children: fmtKrw(baseKrw),
-                      },
-                    },
-                  ],
-                },
-              },
-              // VS
-              {
-                type: "div",
-                props: {
-                  style: {
-                    fontFamily: "GmarketSans",
-                    fontSize: "28px",
-                    fontWeight: 700,
-                    color: COLORS.border,
-                  },
-                  children: "VS",
-                },
-              },
-              // 대상 국가 카드
-              {
-                type: "div",
-                props: {
-                  style: {
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "28px 44px",
-                    backgroundColor: isCheaper ? "#f0fdf4" : COLORS.card,
-                    border: `1.5px solid ${isCheaper ? "#86efac" : COLORS.border}`,
-                    borderRadius: "14px",
-                    minWidth: "300px",
-                  },
-                  children: [
-                    {
-                      type: "div",
-                      props: {
-                        style: {
-                          fontSize: "24px",
-                          fontWeight: 700,
-                          color: isCheaper ? COLORS.savings : COLORS.muted,
-                        },
-                        children: entry.country,
-                      },
-                    },
-                    {
-                      type: "div",
-                      props: {
-                        style: {
-                          fontSize: "44px",
-                          fontWeight: 700,
-                          color: isCheaper ? COLORS.savings : COLORS.foreground,
-                        },
-                        children: fmtKrw(entry.krw),
+                        style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "20px", fontWeight: 600, color: COLORS.muted },
+                        children: [
+                          flagImg(entry.countryCode, 22) ?? null,
+                          { type: "div", props: { children: `${entry.country} 구독료` } },
+                        ],
                       },
                     },
                   ],
@@ -505,78 +424,129 @@ function buildCountryOgMarkup(entry, krEntry) {
             ],
           },
         },
-        // Savings summary
+
+        // ── 히어로: 해당 국가 가격 + 절약 배지 ──
         {
           type: "div",
           props: {
-            style: {
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "8px",
-            },
+            style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" },
             children: [
+              {
+                type: "div",
+                props: {
+                  style: { fontSize: "72px", fontWeight: 700, lineHeight: "1", color: isCheaper ? COLORS.savings : COLORS.foreground },
+                  children: fmtKrw(entry.krw),
+                },
+              },
               isCheaper
                 ? {
                     type: "div",
                     props: {
                       style: {
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
+                        display: "flex", alignItems: "center",
+                        backgroundColor: "#f0fdf4",
+                        borderWidth: "1px", borderStyle: "solid", borderColor: "#86efac",
+                        padding: "6px 20px", borderRadius: "8px",
+                        fontSize: "22px", fontWeight: 700, color: COLORS.savings,
                       },
-                      children: [
-                        {
-                          type: "div",
-                          props: {
-                            style: {
-                              fontFamily: "GmarketSans",
-                              fontSize: "36px",
-                              fontWeight: 700,
-                              color: COLORS.savings,
-                            },
-                            children: `${pct}% 절약`,
-                          },
-                        },
-                        {
-                          type: "div",
-                          props: {
-                            style: {
-                              fontSize: "24px",
-                              fontWeight: 400,
-                              color: COLORS.muted,
-                            },
-                            children: `${fmtKrw(diff)} 저렴`,
-                          },
-                        },
-                      ],
+                      children: `-${pct}%  월 ${fmtKrw(diff)} 절약 (한국 대비)`,
                     },
                   }
                 : {
                     type: "div",
                     props: {
-                      style: {
-                        fontSize: "28px",
-                        fontWeight: 700,
-                        color: COLORS.muted,
-                      },
-                      children:
-                        pct === 0
-                          ? "한국과 동일한 가격"
-                          : `한국보다 ${Math.abs(pct)}% 비쌈`,
+                      style: { fontSize: "20px", fontWeight: 600, color: COLORS.muted },
+                      children: pct === 0 ? "한국과 동일한 가격" : `한국보다 ${Math.abs(pct)}% 비쌈`,
                     },
                   },
+            ],
+          },
+        },
+
+        // ── 하단: 글로벌 TOP 3 랭킹 카드 ──
+        {
+          type: "div",
+          props: {
+            style: { display: "flex", flexDirection: "column", gap: "10px" },
+            children: [
               {
                 type: "div",
                 props: {
-                  style: {
-                    fontSize: "20px",
-                    fontWeight: 400,
-                    color: COLORS.muted,
-                  },
-                  children: "ott.shakilabs.com",
+                  style: { fontSize: "16px", fontWeight: 600, color: COLORS.muted, letterSpacing: "0.06em" },
+                  children: "GLOBAL TOP 3",
                 },
               },
+              {
+                type: "div",
+                props: {
+                  style: { display: "flex", gap: "10px" },
+                  children: top3.map((e, i) => {
+                    const isActive = e.countryCode === entry.countryCode;
+                    return {
+                      type: "div",
+                      props: {
+                        key: e.countryCode,
+                        style: {
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                          flex: 1,
+                          padding: "12px 16px",
+                          backgroundColor: isActive ? "#f0fdf4" : COLORS.card,
+                          borderTopWidth: "1.5px", borderTopStyle: "solid", borderTopColor: isActive ? "#86efac" : COLORS.border,
+                          borderRightWidth: "1.5px", borderRightStyle: "solid", borderRightColor: isActive ? "#86efac" : COLORS.border,
+                          borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: isActive ? "#86efac" : COLORS.border,
+                          borderLeftWidth: "4px", borderLeftStyle: "solid", borderLeftColor: isActive ? COLORS.savings : RANK_ACCENT[i],
+                          borderRadius: "8px",
+                        },
+                        children: [
+                          {
+                            type: "div",
+                            props: {
+                              style: { display: "flex", alignItems: "center", gap: "8px" },
+                              children: [
+                                medalDiv(i),
+                                {
+                                  type: "div",
+                                  props: {
+                                    style: { display: "flex", alignItems: "center", gap: "6px" },
+                                    children: [
+                                      flagImg(e.countryCode, 20) ?? null,
+                                      { type: "div", props: { style: { fontFamily: "GmarketSans", fontSize: "20px", fontWeight: 700, color: isActive ? COLORS.savings : COLORS.foreground }, children: e.country } },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                          {
+                            type: "div",
+                            props: {
+                              style: { fontSize: "22px", fontWeight: 700, color: isActive ? COLORS.savings : COLORS.foreground, paddingLeft: "4px" },
+                              children: fmtKrw(e.krw),
+                            },
+                          },
+                        ],
+                      },
+                    };
+                  }),
+                },
+              },
+            ],
+          },
+        },
+
+        // ── Footer ──
+        {
+          type: "div",
+          props: {
+            style: {
+              display: "flex", justifyContent: "flex-end", alignItems: "center",
+              borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: COLORS.border,
+              paddingTop: "12px",
+            },
+            children: [
+              { type: "div", props: { style: { fontSize: "18px", fontWeight: 600, color: COLORS.primary }, children: "ott.shakilabs.com" } },
             ],
           },
         },
@@ -594,26 +564,26 @@ async function main() {
   const entries = getCountryEntries();
   const krEntry = entries.find((e) => e.countryCode === "kr") || null;
 
-  // 이모지 사전 로드 (🥇🥈🥉 + 전국기)
-  const MEDALS = ["🥇", "🥈", "🥉"];
-  const flagEmojis = entries.map((e) => countryFlag(e.countryCode));
-  await preloadEmojis([...MEDALS, ...flagEmojis]);
+  // 국기 사전 로드 (Twemoji GitHub CDN)
+  await preloadFlags(entries.map((e) => e.countryCode));
 
-  const ogDir = path.join(DIST_DIR, "og");
+  // v2: 카카오 캐시 bust용 버전 디렉토리
+  const OG_VER = "v2";
+  const ogDir = path.join(DIST_DIR, "og", OG_VER);
   const serviceOgDir = path.join(ogDir, SERVICE_SLUG);
   fs.mkdirSync(serviceOgDir, { recursive: true });
 
   let generated = 0;
 
   // 1. 서비스 페이지 OG
-  const serviceMarkup = buildServiceOgMarkup(entries, krEntry, MEDALS);
+  const serviceMarkup = buildServiceOgMarkup(entries, krEntry);
   const servicePng = await renderPng(serviceMarkup);
   fs.writeFileSync(path.join(ogDir, `${SERVICE_SLUG}.png`), servicePng);
   generated++;
 
   // 2. 국가별 OG
   for (const entry of entries) {
-    const markup = buildCountryOgMarkup(entry, krEntry);
+    const markup = buildCountryOgMarkup(entry, krEntry, entries);
     const png = await renderPng(markup);
     fs.writeFileSync(
       path.join(serviceOgDir, `${entry.countryCode}.png`),
@@ -623,7 +593,7 @@ async function main() {
   }
 
   process.stdout.write(
-    `[og-images] generated ${generated} images in dist/og/\n`
+    `[og-images] generated ${generated} images in dist/og/${OG_VER}/\n`
   );
 }
 

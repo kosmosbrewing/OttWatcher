@@ -72,7 +72,7 @@ const serviceName = computed(() => currentService.value?.name || serviceSlug.val
 
 const pageTitle = computed(() =>
   SEO_MAP[serviceSlug.value]?.title ||
-  `${serviceName.value} 국가별 가격 비교 · 나라별 구독료 최저가 순위`
+  `${serviceName.value} 글로벌 가격 비교 · 나라별 구독료 최저가 순위`
 );
 
 const pageDescription = computed(() =>
@@ -260,7 +260,7 @@ const seoJsonLd = computed<Record<string, unknown> | undefined>(() => {
 useSEO({
   title: pageTitle,
   description: pageDescription,
-  ogImage: `${siteUrl}/og/youtube-premium.png`,
+  ogImage: `${siteUrl}/og/v2/youtube-premium.png`,
   jsonLd: seoJsonLd,
 });
 

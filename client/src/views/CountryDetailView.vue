@@ -153,7 +153,7 @@ const countryDetailJsonLd = computed<Record<string, unknown> | undefined>(() => 
 useSEO({
   title: pageTitle,
   description: pageDescription,
-  ogImage: `${siteUrl}/og/youtube-premium/${countryCode.value}.png`,
+  ogImage: `${siteUrl}/og/v2/youtube-premium/${countryCode.value}.png`,
   jsonLd: countryDetailJsonLd,
 });
 
