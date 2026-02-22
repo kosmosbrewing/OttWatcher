@@ -4,16 +4,16 @@
 
 ## 사이트 정보
 
-- URL: https://ottwatcher.shakilabs.com
+- URL: https://ott.shakilabs.com
 - 언어: 한국어
 - 데이터 갱신: 매일 (환율 및 가격 데이터)
 - 제공 서비스: 유튜브 프리미엄 (Youtube Premium)
 
 ## 주요 페이지
 
-- [홈](https://ottwatcher.shakilabs.com/): OTT 서비스 목록 및 국가별 가격 비교 진입점
-- [유튜브 프리미엄 국가별 가격 비교](https://ottwatcher.shakilabs.com/youtube-premium): 43개국 구독료를 KRW/USD로 환산하여 비교, 최저가 순위 제공
-- [유튜브 프리미엄 가격 변동 트렌드](https://ottwatcher.shakilabs.com/youtube-premium/trends): 최근 가격 하락 국가, 절약률 상위 국가, 가격 변동 TOP 10
+- [홈](https://ott.shakilabs.com/): OTT 서비스 목록 및 국가별 가격 비교 진입점
+- [유튜브 프리미엄 국가별 가격 비교](https://ott.shakilabs.com/youtube-premium): 43개국 구독료를 KRW/USD로 환산하여 비교, 최저가 순위 제공
+- [유튜브 프리미엄 가격 변동 트렌드](https://ott.shakilabs.com/youtube-premium/trends): 최근 가격 하락 국가, 절약률 상위 국가, 가격 변동 TOP 10
 
 ## 국가별 상세 페이지
 

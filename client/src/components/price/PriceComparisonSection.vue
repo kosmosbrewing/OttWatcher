@@ -230,7 +230,7 @@ async function onShareKakao(): Promise<void> {
         description: cheapest
           ? `최저가: ${cheapest.country} ${fmtKrw(cheapest.krw)}/월${savings != null && savings > 0 ? ` (${savings}% 절약)` : ""}`
           : `${props.serviceName} 국가별 가격을 비교해보세요`,
-        imageUrl: `${siteUrl}/og-image.png`,
+        imageUrl: `${siteUrl}/og/${props.serviceSlug}.png`,
         link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value },
       },
       buttons: [{ title: "가격 비교 보기", link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value } }],

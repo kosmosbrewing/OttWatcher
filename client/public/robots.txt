@@ -1,5 +1,5 @@
 # OttWatcher — OTT 구독료 국가별 가격 비교
-# https://ottwatcher.shakilabs.com
+# https://ott.shakilabs.com
 
 User-agent: *
 Allow: /
@@ -24,5 +24,5 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://ottwatcher.shakilabs.com/sitemap.xml
-LLMs-txt: https://ottwatcher.shakilabs.com/llms.txt
+Sitemap: https://ott.shakilabs.com/sitemap.xml
+LLMs-txt: https://ott.shakilabs.com/llms.txt

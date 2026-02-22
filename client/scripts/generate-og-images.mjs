@@ -262,7 +262,7 @@ function buildServiceOgMarkup(entries, krEntry) {
                 type: "div",
                 props: {
                   style: { fontSize: "20px", fontWeight: 400, color: COLORS.muted },
-                  children: "ottwatcher.shakilabs.com",
+                  children: "ott.shakilabs.com",
                 },
               },
             ],
@@ -506,7 +506,7 @@ function buildCountryOgMarkup(entry, krEntry) {
                     fontWeight: 400,
                     color: COLORS.muted,
                   },
-                  children: "ottwatcher.shakilabs.com",
+                  children: "ott.shakilabs.com",
                 },
               },
             ],
