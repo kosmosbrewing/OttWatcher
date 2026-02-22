@@ -185,7 +185,7 @@ watch(
           v-model="postContent"
           :maxlength="MAX_LENGTH"
           rows="3"
-          placeholder="가격 체감, 우회 결제 경험, 변경 제보 등을 익명으로 남겨주세요."
+          placeholder="가격 체감, 요금제 후기, 변경 제보 등을 익명으로 남겨주세요."
           class="w-full resize-none bg-transparent px-2.5 py-2 !text-xs outline-none placeholder:text-muted-foreground/60"
         />
         <div class="flex items-center justify-between border-t border-border/60 px-2.5 py-1.5">

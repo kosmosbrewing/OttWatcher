@@ -48,6 +48,7 @@ function main() {
     makeUrlNode("/", { priority: "1.0", changefreq: "weekly", lastmod }),
     makeUrlNode("/about", { priority: "0.5", changefreq: "monthly", lastmod }),
     makeUrlNode("/privacy", { priority: "0.4", changefreq: "monthly", lastmod }),
+    makeUrlNode("/terms", { priority: "0.4", changefreq: "monthly", lastmod }),
     makeUrlNode(`/${SERVICE_SLUG}`, {
       priority: "0.9",
       changefreq: "daily",

@@ -21,6 +21,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: "개인정보처리방침 | OTT 가격 비교" },
   },
   {
+    path: "/terms",
+    name: "Terms",
+    component: () => import("@/views/TermsView.vue"),
+    meta: { title: "이용약관 | OTT 가격 비교" },
+  },
+  {
     path: "/report",
     name: "ReportRedirect",
     redirect: "/youtube-premium",

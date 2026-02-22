@@ -46,6 +46,7 @@ export function getStaticRoutes() {
     "/",
     "/about",
     "/privacy",
+    "/terms",
     "/community",
     `/${SERVICE_SLUG}`,
     `/${SERVICE_SLUG}/trends`,

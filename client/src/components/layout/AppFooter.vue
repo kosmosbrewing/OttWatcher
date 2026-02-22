@@ -10,6 +10,7 @@ import { RouterLink } from "vue-router";
           <RouterLink to="/" class="retro-button-subtle">홈으로</RouterLink>
           <RouterLink to="/about" class="retro-button-subtle">사이트 안내</RouterLink>
           <RouterLink to="/privacy" class="retro-button-subtle">개인정보 처리방침</RouterLink>
+          <RouterLink to="/terms" class="retro-button-subtle">이용약관</RouterLink>
         </div>
         <span class="text-tiny text-muted-foreground">Copyright @ shakilabs.com</span>
       </div>

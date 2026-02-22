@@ -110,6 +110,20 @@ function routeToMeta(route, countryMap) {
     };
   }
 
+  if (route === "/terms") {
+    return {
+      title: "이용약관 | OTT 가격 비교",
+      description: "OTT Watcher 서비스 이용약관입니다. 서비스 이용 조건, 데이터 정확성, 광고 안내 등을 확인하세요.",
+      heading: "이용약관",
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: "이용약관",
+        url: `${SITE_URL}${route}`,
+      },
+    };
+  }
+
   if (route === "/community") {
     return {
       title: "커뮤니티 | OTT 가격 비교",
@@ -199,13 +213,13 @@ function routeToOgImage(route) {
   if (route.startsWith(`/${SERVICE_SLUG}/`) && route.length > `/${SERVICE_SLUG}/`.length) {
     const code = route.split("/").at(-1) || "";
     if (/^[a-z]{2}$/.test(code)) {
-      return `${SITE_URL}/og/${SERVICE_SLUG}/${code}.png`;
+      return `${SITE_URL}/og/v2/${SERVICE_SLUG}/${code}.png`;
     }
-    return `${SITE_URL}/og/${SERVICE_SLUG}.png`;
+    return `${SITE_URL}/og/v2/${SERVICE_SLUG}.png`;
   }
-  // / 또는 /youtube-premium → /og/youtube-premium.png
+  // / 또는 /youtube-premium → /og/v2/youtube-premium.png
   if (route === "/" || route === `/${SERVICE_SLUG}`) {
-    return `${SITE_URL}/og/${SERVICE_SLUG}.png`;
+    return `${SITE_URL}/og/v2/${SERVICE_SLUG}.png`;
   }
   // 그 외 (about, privacy, community 등) — 기본 OG 이미지
   return `${SITE_URL}/og-image.png`;
