@@ -6,6 +6,15 @@
   "outputDirectory": "client/dist",
   "headers": [
     {
+      "source": "/community/:postId",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -43,6 +52,10 @@
       "destination": "/privacy/index.html"
     },
     {
+      "source": "/community/:postId",
+      "destination": "/community/index.html"
+    },
+    {
       "source": "/youtube-premium",
       "destination": "/youtube-premium/index.html"
     },
@@ -53,10 +66,6 @@
     {
       "source": "/youtube-premium/:country([a-z]{2})",
       "destination": "/youtube-premium/:country/index.html"
-    },
-    {
-      "source": "/((?!api|assets|.*\\..*).*)",
-      "destination": "/index.html"
     }
   ]
 }

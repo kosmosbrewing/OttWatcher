@@ -24,7 +24,18 @@ export function useSEO({
     const resolvedOgImage = toValue(ogImage);
     const resolvedJsonLd = toValue(jsonLd);
     const currentUrl =
-      typeof window !== "undefined" ? window.location.href.split("#")[0] : undefined;
+      typeof window !== "undefined"
+        ? (() => {
+            try {
+              const url = new URL(window.location.href);
+              url.search = "";
+              url.hash = "";
+              return url.toString();
+            } catch {
+              return window.location.href.split("#")[0].split("?")[0];
+            }
+          })()
+        : undefined;
 
     return {
       title: resolvedTitle,
@@ -33,9 +44,16 @@ export function useSEO({
         { name: "description", content: resolvedDescription },
         { property: "og:title", content: resolvedTitle },
         { property: "og:description", content: resolvedDescription },
+        { name: "twitter:title", content: resolvedTitle },
+        { name: "twitter:description", content: resolvedDescription },
         ...(currentUrl ? [{ property: "og:url", content: currentUrl }] : []),
         ...(resolvedNoindex ? [{ name: "robots", content: "noindex,nofollow" }] : []),
-        ...(resolvedOgImage ? [{ property: "og:image", content: resolvedOgImage }] : []),
+        ...(resolvedOgImage
+          ? [
+              { property: "og:image", content: resolvedOgImage },
+              { name: "twitter:image", content: resolvedOgImage },
+            ]
+          : []),
       ],
       script: resolvedJsonLd
         ? [

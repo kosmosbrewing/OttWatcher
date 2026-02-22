@@ -15,7 +15,11 @@ const anchorLinks = [
   { hash: "#faq",     label: "자주 묻는 질문" },
 ] as const;
 
+// anchorLinks에 정의된 해시만 허용 — CSS 선택자 인젝션 방지
+const ALLOWED_HASHES = new Set<string>(anchorLinks.map((l) => l.hash));
+
 function scrollToHash(hash: string): void {
+  if (!ALLOWED_HASHES.has(hash)) return;
   const el = document.querySelector(hash);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }

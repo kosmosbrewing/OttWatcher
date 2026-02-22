@@ -70,10 +70,14 @@ async function loadPopular(): Promise<void> {
   }
 }
 
-function switchTab(tab: TabType): void {
+async function switchTab(tab: TabType): Promise<void> {
   activeTab.value = tab;
   if (tab === "popular" && popularPosts.value.length === 0) {
-    void loadPopular();
+    try {
+      await loadPopular();
+    } catch {
+      // loadPopular 내부의 popularPosts error 처리
+    }
   }
 }
 
@@ -107,7 +111,13 @@ async function submitPost(): Promise<void> {
 
 watch(
   () => props.serviceSlug,
-  () => { void loadLatest(); },
+  async () => {
+    try {
+      await loadLatest();
+    } catch {
+      // loadLatest 내부의 error ref로 처리됨
+    }
+  },
   { immediate: true }
 );
 </script>

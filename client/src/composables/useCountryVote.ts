@@ -1,7 +1,14 @@
 import { ref, computed, type Ref } from "vue";
+import { z } from "zod";
 import { submitCountryVote, fetchVoteResults, type CountryVoteResult } from "@/api";
 
 const STORAGE_KEY = "ottwatcher:countryVote:v1";
+
+// serviceSlug: 영소문자·숫자·하이픈만 허용, countryCode: 대문자 알파벳 2자리
+const voteMapSchema = z.record(
+  z.string().regex(/^[a-z0-9-]+$/),
+  z.string().regex(/^[A-Z]{2}$/)
+);
 
 /** localStorage에 서비스별 투표한 국가 코드 저장 */
 function readVoteMap(): Record<string, string> {
@@ -10,8 +17,9 @@ function readVoteMap(): Record<string, string> {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-    return parsed as Record<string, string>;
+    const result = voteMapSchema.safeParse(parsed);
+    if (!result.success) return {};
+    return result.data;
   } catch {
     return {};
   }

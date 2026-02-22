@@ -62,7 +62,7 @@ const currentService = computed(() =>
 
 const SEO_MAP: Record<string, { title: string; description: string }> = {
   "youtube-premium": {
-    title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)",
+    title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위",
     description:
       "유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
   },
@@ -369,10 +369,13 @@ watch(
   { immediate: true }
 );
 
-watch(serviceSlug, (slug) => {
+watch(serviceSlug, async (slug) => {
   if (!slug) return;
-  void loadPrices(slug);
-  if (showTrendTop10) void loadTrendData(slug);
+  try {
+    await loadPrices(slug);
+  } catch {
+    // usePrices 내부에서 error ref로 처리됨
+  }
 });
 </script>
 

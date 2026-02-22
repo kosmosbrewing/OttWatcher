@@ -28,16 +28,32 @@ const {
 
 const isRevoting = ref(false);
 
-// 모달 열릴 때 결과 로드
+// 모달 열릴 때 결과 로드 + ESC 키 이벤트 통합 관리
+function onKeydown(e: KeyboardEvent): void {
+  if (e.key === "Escape") emit("close");
+}
+
 watch(
   () => props.show,
-  (open) => {
+  async (open) => {
     if (open) {
       isRevoting.value = false;
-      void loadResults();
+      window.addEventListener("keydown", onKeydown);
+      try {
+        await loadResults();
+      } catch {
+        // error ref는 useCountryVote 내부에서 처리됨
+      }
+    } else {
+      window.removeEventListener("keydown", onKeydown);
     }
   }
 );
+
+// 모달이 열린 채로 unmount될 경우 안전망
+onUnmounted(() => {
+  window.removeEventListener("keydown", onKeydown);
+});
 
 // 상위 10개만 표시
 const top10Results = computed(() => sortedResults.value.slice(0, 10));
@@ -72,26 +88,6 @@ async function handleVote(countryCode: string): Promise<void> {
     isRevoting.value = false;
   }
 }
-
-// ESC 키로 닫기 — 모달 열림 상태에서만 활성
-function onKeydown(e: KeyboardEvent): void {
-  if (e.key === "Escape") emit("close");
-}
-
-watch(
-  () => props.show,
-  (open) => {
-    if (open) {
-      window.addEventListener("keydown", onKeydown);
-    } else {
-      window.removeEventListener("keydown", onKeydown);
-    }
-  }
-);
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", onKeydown);
-});
 </script>
 
 <template>

@@ -14,11 +14,30 @@ const DIST_DIR = path.resolve(__dirname, "../dist");
 const DIST_INDEX = path.resolve(DIST_DIR, "index.html");
 
 function updateMetaTag(html, selector, content) {
+  const escapedContent = String(content)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
   const pattern = new RegExp(`(<meta\\s+${selector}\\s+content=\")[^\"]*(\"\\s*\\/?>)`, "i");
   if (pattern.test(html)) {
-    return html.replace(pattern, `$1${content}$2`);
+    return html.replace(pattern, `$1${escapedContent}$2`);
   }
-  return html;
+  return html.replace("</head>", `    <meta ${selector} content="${escapedContent}" />\n  </head>`);
+}
+
+function updateCanonicalLink(html, href) {
+  const escapedHref = String(href)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+  const tag = `<link rel="canonical" href="${escapedHref}" />`;
+  const pattern = /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i;
+  if (pattern.test(html)) {
+    return html.replace(pattern, tag);
+  }
+  return html.replace("</head>", `    ${tag}\n  </head>`);
 }
 
 function updateTitle(html, title) {
@@ -154,7 +173,7 @@ function routeToMeta(route, countryMap) {
 
   if (route === `/${SERVICE_SLUG}`) {
     return {
-      title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)",
+      title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위",
       description:
         "유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
       heading: "유튜브 프리미엄 국가별·나라별 가격 비교",
@@ -172,15 +191,19 @@ function routeToMeta(route, countryMap) {
 
 function routeToOgImage(route) {
   // /youtube-premium/:code → /og/youtube-premium/:code.png
+  // 단, 국가 코드는 반드시 2자리 알파벳 — "trends" 같은 경로는 서비스 OG 이미지로 fallback
   if (route.startsWith(`/${SERVICE_SLUG}/`) && route.length > `/${SERVICE_SLUG}/`.length) {
     const code = route.split("/").at(-1) || "";
-    return `${SITE_URL}/og/${SERVICE_SLUG}/${code}.png`;
+    if (/^[a-z]{2}$/.test(code)) {
+      return `${SITE_URL}/og/${SERVICE_SLUG}/${code}.png`;
+    }
+    return `${SITE_URL}/og/${SERVICE_SLUG}.png`;
   }
   // / 또는 /youtube-premium → /og/youtube-premium.png
   if (route === "/" || route === `/${SERVICE_SLUG}`) {
     return `${SITE_URL}/og/${SERVICE_SLUG}.png`;
   }
-  // 그 외 (about, privacy 등) — 기본 OG 이미지
+  // 그 외 (about, privacy, community 등) — 기본 OG 이미지
   return `${SITE_URL}/og-image.png`;
 }
 
@@ -189,12 +212,21 @@ function buildRouteHtml(templateHtml, route, countryMap) {
   const ogImage = routeToOgImage(route);
 
   let html = templateHtml;
+  const canonicalUrl = `${SITE_URL}${route}`;
   html = updateTitle(html, meta.title);
   html = updateMetaTag(html, 'name="description"', meta.description);
+  html = updateCanonicalLink(html, canonicalUrl);
   html = updateMetaTag(html, 'property="og:title"', meta.title);
   html = updateMetaTag(html, 'property="og:description"', meta.description);
-  html = updateMetaTag(html, 'property="og:url"', `${SITE_URL}${route}`);
+  html = updateMetaTag(html, 'property="og:url"', canonicalUrl);
   html = updateMetaTag(html, 'property="og:image"', ogImage);
+  // og:image:width/height — 없으면 og:image 태그 바로 뒤에 삽입
+  if (!html.includes('property="og:image:width"')) {
+    html = html.replace(
+      /(<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>)/i,
+      '$1\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />'
+    );
+  }
   html = updateMetaTag(html, 'name="twitter:title"', meta.title);
   html = updateMetaTag(html, 'name="twitter:description"', meta.description);
   html = updateMetaTag(html, 'name="twitter:image"', ogImage);

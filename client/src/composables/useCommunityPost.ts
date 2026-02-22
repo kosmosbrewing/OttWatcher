@@ -137,8 +137,13 @@ export function useCommunityPost(postIdSource: MaybeRefOrGetter<string>) {
 
   watch(
     () => toValue(postIdSource),
-    () => {
-      void loadAll();
+    async () => {
+      if (loading.value) return;
+      try {
+        await loadAll();
+      } catch {
+        // error ref는 loadAll 내부에서 처리됨
+      }
     },
     { immediate: true }
   );

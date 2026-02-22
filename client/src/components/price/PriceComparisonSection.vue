@@ -20,14 +20,6 @@ type ComparePriceRow = {
 
 type ShareRow = { countryCode: string; country: string; krw: number | null };
 
-type Html2CanvasOptions = {
-  backgroundColor?: string | null;
-  scale?: number;
-  useCORS?: boolean;
-  logging?: boolean;
-};
-type Html2CanvasFn = (el: HTMLElement, opts?: Html2CanvasOptions) => Promise<HTMLCanvasElement>;
-
 const props = defineProps<{
   priceData: PricesResponse;
   selectedPlan: string;
@@ -48,12 +40,6 @@ function toNumber(value: unknown): number | null {
 function fmtKrw(val: number | null | undefined): string {
   if (val == null) return "-";
   return `${formatNumber(Math.round(val))}원`;
-}
-
-// html2canvas 공유 카드 전용 — 이미지 캡처 시 ₩ 기호 사용
-function fmtKrwSymbol(val: number | null | undefined): string {
-  if (val == null) return "-";
-  return `₩${formatNumber(Math.round(val))}`;
 }
 
 function fmtUsd(val: number | null | undefined): string {
@@ -180,10 +166,8 @@ const compareSummary = computed<{ message: string; tone: string } | null>(() => 
 });
 
 // ─── 공유 ─────────────────────────────────────────────────
-const shareBusy = ref(false);
 const kakaoBusy = ref(false);
 const showShareModal = ref(false);
-const shareCardRef = ref<HTMLElement | null>(null);
 
 type SummaryPriceRow = { countryCode: string; country: string; krw: number; usd: number | null };
 
@@ -213,73 +197,6 @@ const shareTop3Rows = computed<ShareRow[]>(() =>
 
 const sharePageUrl = computed(() => `${siteUrl}/${props.serviceSlug}`);
 const shareTitle = computed(() => `${props.serviceName} 국가별 가격 비교 | OttWatcher`);
-const usdToKrwRate = computed<number | null>(() => props.priceData?.krwRate ?? null);
-
-async function loadHtml2Canvas(): Promise<Html2CanvasFn> {
-  const w = window as unknown as Record<string, unknown>;
-  if (w.html2canvas) return w.html2canvas as Html2CanvasFn;
-  await new Promise<void>((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("html2canvas 로드 실패"));
-    document.head.appendChild(s);
-  });
-  return (window as unknown as Record<string, unknown>).html2canvas as Html2CanvasFn;
-}
-
-function downloadBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function createShareCardBlob(): Promise<Blob> {
-  if (!shareCardRef.value) throw new Error("공유 카드를 생성할 수 없습니다.");
-  const html2canvas = await loadHtml2Canvas();
-  const isDark = document.documentElement.classList.contains("dark");
-  const canvas = await html2canvas(shareCardRef.value, {
-    backgroundColor: isDark ? "#0f172a" : "#f8fafc",
-    scale: Math.min(2, window.devicePixelRatio || 1),
-    useCORS: true,
-    logging: false,
-  });
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error("이미지 생성에 실패했습니다."))),
-      "image/png"
-    );
-  });
-}
-
-async function onShareImage(): Promise<void> {
-  if (shareBusy.value) return;
-  shareBusy.value = true;
-  try {
-    const blob = await createShareCardBlob();
-    const file = new File([blob], `${props.serviceSlug || "ott"}-share.png`, { type: "image/png" });
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: shareTitle.value });
-      return;
-    }
-    if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      showAlert("이미지를 클립보드에 복사했습니다. 붙여넣기로 공유하세요.", { type: "success" });
-      return;
-    }
-    downloadBlob(blob, `${props.serviceSlug || "ott"}-share-card.png`);
-    showAlert("공유 카드 이미지를 저장했습니다.", { type: "success" });
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") return;
-    showAlert(error instanceof Error ? error.message : "공유에 실패했습니다.", { type: "error" });
-  } finally {
-    shareBusy.value = false;
-  }
-}
 
 async function onShareKakao(): Promise<void> {
   if (kakaoBusy.value) return;
@@ -492,67 +409,10 @@ defineExpose({ selectedRightCountryCode });
     </CardContent>
   </Card>
 
-  <!-- 오프스크린 공유 카드 (html2canvas 캡처용) -->
-  <div class="pointer-events-none fixed -left-[9999px] top-0 z-[-1]" aria-hidden="true">
-    <div
-      ref="shareCardRef"
-      class="bg-background text-foreground"
-      style="width:800px; font-family:'Pretendard','Noto Sans KR','Apple SD Gothic Neo',sans-serif;"
-    >
-      <div style="padding:24px 28px 16px; display:flex; align-items:flex-start; justify-content:space-between;">
-        <div class="text-foreground" style="font-size:20px; font-weight:900; line-height:1.2;">{{ serviceName }} 국가별 가격 비교</div>
-        <div class="text-muted-foreground" style="font-size:10px; text-align:right; line-height:1.8;">
-          <div>환율 기준 {{ priceData.exchangeRateDate }}</div>
-          <div v-if="usdToKrwRate">$1 = ₩{{ formatNumber(usdToKrwRate) }}</div>
-        </div>
-      </div>
-
-      <div v-if="selectedCompareCountry" class="border-t border-border" style="padding:20px 28px;">
-        <div style="display:flex; align-items:center; gap:16px;">
-          <div class="bg-card border border-border" style="flex:1; padding:18px 16px; text-align:center;">
-            <div style="font-size:2.4rem; line-height:1;">{{ countryFlag(selectedCompareCountry.countryCode) }}</div>
-            <div class="text-foreground" style="font-size:14px; font-weight:700; margin-top:8px;">{{ selectedCompareCountry.country }}</div>
-            <div class="text-primary" style="font-size:22px; font-weight:900; margin-top:6px; font-variant-numeric:tabular-nums;">{{ fmtKrwSymbol(selectedCompareCountry.krw) }}</div>
-            <div class="text-muted-foreground" style="font-size:10px; margin-top:3px;">{{ fmtUsd(selectedCompareCountry.usd) }}</div>
-          </div>
-          <div style="flex-shrink:0; text-align:center; min-width:88px;">
-            <div v-if="compareSavingsPercent != null && compareSavingsPercent > 0" class="text-savings" style="font-size:34px; font-weight:900; line-height:1;">{{ compareSavingsPercent }}%</div>
-            <div class="text-muted-foreground" style="font-size:11px; margin-top:5px; font-weight:600;">더 저렴</div>
-          </div>
-          <div v-if="rightCompareRow" class="bg-card border border-border" style="flex:1; padding:18px 16px; text-align:center; opacity:0.72;">
-            <div style="font-size:2.4rem; line-height:1;">{{ countryFlag(rightCompareRow.countryCode) }}</div>
-            <div class="text-foreground" style="font-size:14px; font-weight:700; margin-top:8px;">{{ rightCompareRow.country }}</div>
-            <div class="text-foreground" style="font-size:22px; font-weight:900; margin-top:6px; font-variant-numeric:tabular-nums;">{{ fmtKrwSymbol(rightCompareRow.krw) }}</div>
-            <div class="text-muted-foreground" style="font-size:10px; margin-top:3px;">{{ fmtUsd(rightCompareRow.usd) }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="border-t border-border" style="padding:20px 28px;">
-        <div class="text-muted-foreground" style="font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px;">TOP 3 최저가 국가</div>
-        <div
-          v-for="(row, idx) in shareTop3Rows"
-          :key="row.countryCode"
-          class="bg-card border border-border"
-          style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; margin-bottom:8px;"
-        >
-          <div style="display:flex; align-items:center; gap:14px;">
-            <span style="font-size:1.5rem; line-height:1; flex-shrink:0;">{{ ['🥇','🥈','🥉'][idx] }}</span>
-            <span style="font-size:1.25rem; line-height:1; flex-shrink:0;">{{ countryFlag(row.countryCode) }}</span>
-            <span class="text-foreground" style="font-size:15px; font-weight:700;">{{ row.country }}</span>
-          </div>
-          <span class="text-primary" style="font-size:18px; font-weight:900; font-variant-numeric:tabular-nums;">{{ fmtKrwSymbol(row.krw) }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <ShareModal
     :show="showShareModal"
-    :share-busy="shareBusy"
     :kakao-busy="kakaoBusy"
     @close="showShareModal = false"
-    @share-image="onShareImage()"
     @share-kakao="onShareKakao()"
     @copy-link="onCopyShareLink()"
   />

@@ -42,17 +42,17 @@ watch(post, (p) => {
 type CommentLikeState = { liked: boolean; likeCount: number; toggling: boolean };
 const commentLikeMap = ref<Map<string, CommentLikeState>>(new Map());
 
-// 댓글 로드 후 likeCount 초기화
+// 댓글 로드 후 likeCount 초기화 — 제거된 댓글은 Map에서 정리
 watch(comments, (list) => {
+  const next = new Map<string, CommentLikeState>();
   for (const c of list) {
-    if (!commentLikeMap.value.has(c.id)) {
-      commentLikeMap.value.set(c.id, {
-        liked: false,
-        likeCount: c.likeCount ?? 0,
-        toggling: false,
-      });
-    }
+    next.set(c.id, commentLikeMap.value.get(c.id) ?? {
+      liked: false,
+      likeCount: c.likeCount ?? 0,
+      toggling: false,
+    });
   }
+  commentLikeMap.value = next;
 }, { immediate: true });
 
 function getCommentLike(commentId: string): CommentLikeState {
@@ -101,6 +101,7 @@ const pageDescription = computed(() => {
 useSEO({
   title: pageTitle,
   description: pageDescription,
+  noindex: true,
 });
 
 function formatTime(iso: string | undefined): string {

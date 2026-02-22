@@ -28,7 +28,10 @@ export function useCommunityList(limit = DEFAULT_LIMIT) {
       page.value = targetPage;
       total.value = response.total;
 
-      if (typeof response.total === "number") {
+      // 백엔드가 hasMore를 직접 반환 (limit+1 패턴)
+      if (typeof response.hasMore === "boolean") {
+        hasMore.value = response.hasMore;
+      } else if (typeof response.total === "number") {
         hasMore.value = posts.value.length < response.total;
       } else {
         hasMore.value = nextPosts.length >= normalizedLimit;

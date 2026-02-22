@@ -84,7 +84,13 @@ async function loadTrendData(): Promise<void> {
 }
 
 onMounted(loadTrendData);
-watch(serviceSlug, () => void loadTrendData());
+watch(serviceSlug, async () => {
+  try {
+    await loadTrendData();
+  } catch {
+    // loadTrendData 내부에서 error ref로 처리됨
+  }
+});
 </script>
 
 <template>

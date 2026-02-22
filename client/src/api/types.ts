@@ -103,6 +103,7 @@ export interface CommunityPostResponse {
 export interface CommunityPostsResponse {
   posts: CommunityPost[];
   total?: number;
+  hasMore?: boolean;
   [key: string]: unknown;
 }
 

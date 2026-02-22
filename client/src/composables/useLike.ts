@@ -1,7 +1,11 @@
 import { ref, type Ref } from "vue";
+import { z } from "zod";
 import { togglePostLike } from "@/api";
 
 const STORAGE_KEY = "ottwatcher:likes:v1";
+
+// 백엔드에서 postId 형식을 검증하므로 클라이언트는 기본 타입만 검증
+const likedSetSchema = z.array(z.string().max(128));
 
 function readLikedSet(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -9,8 +13,9 @@ function readLikedSet(): Set<string> {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return new Set();
     const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed.filter((v): v is string => typeof v === "string"));
+    const result = likedSetSchema.safeParse(parsed);
+    if (!result.success) return new Set();
+    return new Set(result.data);
   } catch {
     return new Set();
   }

@@ -5,23 +5,31 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)</title>
+    <title>유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위</title>
     <meta name="description" content="유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준으로 한국 대비 절약률까지 제공합니다." />
+    <link rel="canonical" href="https://ottwatcher.shakilabs.com/" />
+
+    <!-- 로컬 폰트 preload — LCP 폰트 교체 지연 방지 -->
+    <link rel="preload" href="/fonts/Pretendard-Regular.woff" as="font" type="font/woff" crossorigin />
+    <link rel="preload" href="/fonts/GmarketSansBold.woff" as="font" type="font/woff" crossorigin />
 
     <!-- OG 태그 -->
-    <meta property="og:title" content="유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위 (2026)" />
+    <meta property="og:title" content="유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위" />
     <meta property="og:description" content="유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준 절약률도 제공합니다." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:site_name" content="OTT 구독료 국가별 가격 비교" />
     <meta property="og:url" content="https://ottwatcher.shakilabs.com" />
     <meta property="og:image" content="https://ottwatcher.shakilabs.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위" />
+    <meta name="twitter:description" content="유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교하고 최저가 국가를 확인하세요. 현재 환율 기준 절약률도 제공합니다." />
     <meta name="twitter:image" content="https://ottwatcher.shakilabs.com/og-image.png" />
     <script>
       (() => {
         try {
-          document.documentElement.classList.add("js");
           const key = "ottwatcher:theme:v1";
           const saved = localStorage.getItem(key);
           const prefersDark =
@@ -42,33 +50,8 @@
         }
       })();
     </script>
-    <link rel="preload" as="font" href="https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSansBold.woff2" type="font/woff2" crossorigin />
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link
-      rel="preload"
-      as="style"
-      crossorigin
-      onload="this.onload=null;this.rel='stylesheet'"
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
-      />
-    </noscript>
-
-    <!-- Critical CSS: LCP 최적화 (폰트 + CSS 변수 + 기본 스타일) -->
+    <!-- Critical CSS: LCP 최적화 (CSS 변수 + 기본 스타일) -->
     <style>
-      /* 지마켓산스: 큰 제목 전용 — gmarket.co.kr 무료 배포 폰트 */
-      @font-face {
-        font-family: "GmarketSans";
-        src: url("https://cdn.jsdelivr.net/gh/fonts-archive/GmarketSans/GmarketSansBold.woff2") format("woff2");
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-      }
-
       /* 파비콘 인디고 톤에 맞춘 색상 체계 */
       :root {
         --background: 212 36% 97%;
@@ -124,7 +107,7 @@
         font-size: 15px;
       }
 
-      .js [data-seo-prerender] {
+      #app:not(:empty) + [data-seo-prerender] {
         display: none;
       }
 

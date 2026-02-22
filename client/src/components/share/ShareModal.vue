@@ -1,23 +1,20 @@
 <script setup lang="ts">
-import { Camera, MessageSquare, Link } from "lucide-vue-next";
+import { Link } from "lucide-vue-next";
 
 const props = defineProps<{
   show: boolean;
-  shareBusy: boolean;
   kakaoBusy: boolean;
 }>();
 
 const emit = defineEmits<{
   close: [];
-  shareImage: [];
   shareKakao: [];
   copyLink: [];
 }>();
 
-function handleAction(action: "image" | "kakao" | "link"): void {
+function handleAction(action: "kakao" | "link"): void {
   emit("close");
-  if (action === "image") emit("shareImage");
-  else if (action === "kakao") emit("shareKakao");
+  if (action === "kakao") emit("shareKakao");
   else emit("copyLink");
 }
 </script>
@@ -36,25 +33,21 @@ function handleAction(action: "image" | "kakao" | "link"): void {
             <button class="retro-kbd text-xs" @click="emit('close')">ESC</button>
           </div>
 
-          <div class="p-4 grid grid-cols-3 gap-3">
-            <!-- 이미지 공유 -->
-            <button
-              class="flex flex-col items-center gap-2 retro-panel-muted border border-border/40 p-3 hover:border-primary/60 transition-colors disabled:opacity-50"
-              :disabled="props.shareBusy"
-              @click="handleAction('image')"
-            >
-              <Camera class="h-6 w-6 text-primary" />
-              <span class="text-[0.72rem] font-bold text-center leading-tight">이미지<br>공유</span>
-            </button>
-
+          <div class="p-4 grid grid-cols-2 gap-3">
             <!-- 카카오톡 공유 -->
             <button
               class="flex flex-col items-center gap-2 retro-panel-muted border border-border/40 p-3 hover:border-yellow-400/60 transition-colors disabled:opacity-50"
               :disabled="props.kakaoBusy"
+              aria-label="카카오톡 공유"
               @click="handleAction('kakao')"
             >
-              <MessageSquare class="h-6 w-6 text-yellow-400" />
-              <span class="text-[0.72rem] font-bold text-center leading-tight">카카오톡<br>공유</span>
+              <img
+                src="/images/icons/kakaotalk-sharing-medium.png?v=1"
+                alt=""
+                aria-hidden="true"
+                class="h-6 w-6 object-contain"
+              />
+              <span class="text-[0.72rem] font-bold text-center leading-tight whitespace-nowrap">카카오톡 공유</span>
             </button>
 
             <!-- 링크 복사 -->
@@ -63,7 +56,7 @@ function handleAction(action: "image" | "kakao" | "link"): void {
               @click="handleAction('link')"
             >
               <Link class="h-6 w-6 text-muted-foreground" />
-              <span class="text-[0.72rem] font-bold text-center leading-tight">링크<br>복사</span>
+              <span class="text-[0.72rem] font-bold text-center leading-tight whitespace-nowrap">링크 복사</span>
             </button>
           </div>
         </div>

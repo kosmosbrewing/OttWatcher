@@ -146,7 +146,10 @@ onMounted(() => {
       <!-- 최신글 -->
       <template v-if="activeTab === 'latest'">
         <LoadingSpinner v-if="loading && posts.length === 0" class="p-4" message="게시글을 불러오는 중..." />
-        <p v-else-if="error" class="px-4 py-4 !text-sm text-destructive">{{ error }}</p>
+        <div v-else-if="error" class="px-4 py-4 space-y-2">
+          <p class="!text-sm text-destructive">{{ error }}</p>
+          <button type="button" class="retro-button-subtle !px-2 !py-1 !text-xs" @click="refresh">다시 시도</button>
+        </div>
         <ul v-else-if="posts.length > 0" class="divide-y divide-border/60">
           <li v-for="post in posts" :key="post.id">
             <RouterLink

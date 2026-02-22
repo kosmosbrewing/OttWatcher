@@ -287,13 +287,9 @@ export function fetchAllCommunityPosts(
 
   return requestCommunityApi<CommunityPostsResponse>(`/all?${query.toString()}`, {
     method: "GET",
-    cache: "no-store",
   }).then((payload) => ({
     posts: normalizeCommunityPosts(payload),
-    total:
-      isRecord(payload) && typeof payload.total === "number" && Number.isFinite(payload.total)
-        ? Math.max(0, Math.floor(payload.total))
-        : undefined,
+    hasMore: isRecord(payload) && typeof payload.hasMore === "boolean" ? payload.hasMore : undefined,
   }));
 }
 

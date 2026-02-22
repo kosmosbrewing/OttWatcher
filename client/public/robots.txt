@@ -4,7 +4,6 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /assets/
 
 # AI 검색엔진 명시 허용
 User-agent: GPTBot
