@@ -555,7 +555,7 @@ watch(serviceSlug, async (slug) => {
   font-size: clamp(1.25rem, 2.6vw, 2rem);
   font-weight: 900;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
   text-shadow: 1px 1px 0 rgb(203 213 225 / 0.9);
 }
 
