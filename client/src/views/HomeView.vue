@@ -12,7 +12,7 @@ const siteUrl = getSiteUrl();
 useSEO({
   title: "OTT 구독료 국가별 가격 비교 | 유튜브 프리미엄·넷플릭스 나라별 최저가",
   description:
-    "유튜브 프리미엄(Youtube Premium), 넷플릭스 등 OTT 서비스 국가별·나라별 구독료를 현재 환율 기준으로 비교. 최저가 국가 순위와 절약률.",
+    "유튜브 프리미엄(YouTube Premium), 넷플릭스 등 OTT 서비스 국가별·나라별 구독료를 현재 환율 기준으로 비교. 최저가 국가 순위와 절약률.",
   ogImage: `${siteUrl}/og-image.png`,
   jsonLd: {
     "@context": "https://schema.org",

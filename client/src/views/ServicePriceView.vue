@@ -64,7 +64,7 @@ const SEO_MAP: Record<string, { title: string; description: string }> = {
   "youtube-premium": {
     title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위",
     description:
-      "유튜브 프리미엄(Youtube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
+      "유튜브 프리미엄(YouTube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
   },
 };
 
@@ -396,7 +396,7 @@ watch(serviceSlug, async (slug) => {
     <!-- 가격 데이터 -->
     <div v-else-if="priceData" class="third-rate-board">
       <!-- SEO h1 — 시각적 숨김, 크롤러 인식 -->
-      <h1 class="sr-only">Youtube Premium 국가별 가격 비교 — 나라별 구독료 최저가 순위</h1>
+      <h1 class="sr-only">YouTube Premium 국가별 가격 비교 — 나라별 구독료 최저가 순위</h1>
 
       <!-- VS 비교 + 공유 -->
       <PriceComparisonSection
@@ -430,7 +430,7 @@ watch(serviceSlug, async (slug) => {
         <div class="space-y-4">
           <Card id="ranking" class="retro-panel overflow-hidden">
             <div class="retro-titlebar">
-              <h2 class="retro-title">Youtube Premium 국가별 가격 랭킹</h2>
+              <h2 class="retro-title">YouTube Premium 국가별 가격 랭킹</h2>
             </div>
             <CardContent>
               <PriceTable
@@ -510,7 +510,7 @@ watch(serviceSlug, async (slug) => {
               >
                 <Vote class="h-5 w-5 shrink-0 text-primary" />
                 <div>
-                  <p class="!text-xs font-bold text-foreground">Youtube Premium 최적 국가 투표</p>
+                  <p class="!text-xs font-bold text-foreground">YouTube Premium 최적 국가 투표</p>
                   <p class="!text-[11px] text-muted-foreground">어떤 나라에서 구독하는 게 가장 좋을까요?</p>
                 </div>
               </button>

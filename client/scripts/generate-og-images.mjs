@@ -118,7 +118,7 @@ function buildServiceOgMarkup(entries, krEntry) {
                     lineHeight: "1.2",
                     color: COLORS.foreground,
                   },
-                  children: "Youtube Premium",
+                  children: "YouTube Premium",
                 },
               },
               {
@@ -371,7 +371,7 @@ function buildCountryOgMarkup(entry, krEntry) {
               {
                 type: "div",
                 props: {
-                  children: "Youtube Premium",
+                  children: "YouTube Premium",
                 },
               },
               {

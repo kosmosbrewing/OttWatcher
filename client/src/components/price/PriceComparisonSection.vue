@@ -263,7 +263,7 @@ defineExpose({ selectedRightCountryCode });
 <template>
   <Card id="compare" class="mb-4 retro-panel overflow-hidden">
     <div class="retro-titlebar">
-      <h2 class="retro-title">Youtube Premium 국가별 가격 비교</h2>
+      <h2 class="retro-title">YouTube Premium 국가별 가격 비교</h2>
     </div>
     <CardContent class="space-y-4">
       <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_56px_minmax(0,1fr)] md:items-stretch">
