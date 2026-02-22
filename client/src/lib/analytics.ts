@@ -9,7 +9,7 @@ declare global {
 }
 
 const GA_MEASUREMENT_ID_PATTERN = /^G-[A-Z0-9]{4,}$/;
-const GA_DEBUG_MODE = import.meta.env.VITE_GA_DEBUG === "true";
+const GA_DEBUG_MODE = import.meta.env.DEV && import.meta.env.VITE_GA_DEBUG === "true";
 
 function normalizeMeasurementId(value: unknown): string {
   if (typeof value !== "string") return "";
