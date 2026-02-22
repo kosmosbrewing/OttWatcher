@@ -196,7 +196,7 @@ const shareTop3Rows = computed<ShareRow[]>(() =>
 );
 
 const sharePageUrl = computed(() => `${siteUrl}/${props.serviceSlug}`);
-const shareTitle = computed(() => `${props.serviceName} 국가별 가격 비교 | OttWatcher`);
+const shareTitle = computed(() => `${props.serviceName} 국가별 가격 비교`);
 
 async function onShareKakao(): Promise<void> {
   if (kakaoBusy.value) return;
@@ -223,14 +223,18 @@ async function onShareKakao(): Promise<void> {
 
     const cheapest = shareTop3Rows.value[0];
     const savings = compareSavingsPercent.value;
+    const siteDomain = new URL(siteUrl).hostname;
+    const descBase = cheapest
+      ? `최저가: ${cheapest.country} ${fmtKrw(cheapest.krw)}/월${savings != null && savings > 0 ? ` (${savings}% 절약)` : ""}`
+      : `${props.serviceName} 국가별 가격을 비교해보세요`;
     Kakao.Share.sendDefault({
       objectType: "feed",
       content: {
         title: shareTitle.value,
-        description: cheapest
-          ? `최저가: ${cheapest.country} ${fmtKrw(cheapest.krw)}/월${savings != null && savings > 0 ? ` (${savings}% 절약)` : ""}`
-          : `${props.serviceName} 국가별 가격을 비교해보세요`,
+        description: `${descBase}\n${siteDomain}`,
         imageUrl: `${siteUrl}/og/${props.serviceSlug}.png`,
+        imageWidth: 800,
+        imageHeight: 400,
         link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value },
       },
       buttons: [{ title: "가격 비교 보기", link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value } }],
