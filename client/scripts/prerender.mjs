@@ -63,7 +63,7 @@ function buildFallbackHtml(meta) {
 
 function routeToMeta(route, countryMap) {
   const youtubePremiumMeta = {
-    title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가 순위",
+    title: "유튜브 프리미엄 글로벌 가격 비교 · 나라별 구독료 최저가 순위",
     description:
       "유튜브 프리미엄(YouTube Premium) 국가별·나라별 구독료를 한눈에 비교. 최저가 국가 순위와 한국 대비 절약률. 현재 환율 기준 최신 데이터.",
     heading: "유튜브 프리미엄 국가별·나라별 가격 비교",
@@ -130,7 +130,7 @@ function routeToMeta(route, countryMap) {
       jsonLd: {
         "@context": "https://schema.org",
         "@type": "WebPage",
-        name: "유튜브 프리미엄 국가별 가격 비교",
+        name: "유튜브 프리미엄 글로벌 가격 비교",
         url: `${SITE_URL}${route}`,
       },
     };

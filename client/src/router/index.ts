@@ -53,7 +53,7 @@ const routes: RouteRecordRaw[] = [
     path: "/:serviceSlug",
     name: "ServicePrice",
     component: () => import("@/views/ServicePriceView.vue"),
-    meta: { title: "유튜브 프리미엄 국가별 가격 비교 · 나라별 구독료 최저가" },
+    meta: { title: "유튜브 프리미엄 글로벌 가격 비교 · 나라별 구독료 최저가" },
   },
   {
     path: "/:serviceSlug/:countryCode",
