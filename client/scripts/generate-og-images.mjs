@@ -64,28 +64,40 @@ function countryFlag(code) {
   ).join("");
 }
 
-// ─── Twemoji: Satori 이모지(국기, 메달 등) 렌더링 지원 ────────────────────
-async function loadAdditionalAsset(code, segment) {
-  if (code === "emoji") {
-    const codePoints = [...segment]
-      .map((c) => c.codePointAt(0).toString(16).padStart(4, "0"))
-      .join("-")
-      .replace(/-fe0f/g, ""); // variation selector 제거
-    const url = `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${codePoints}.svg`;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) return segment;
-      const svg = await res.text();
-      return `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
-    } catch {
-      return segment;
-    }
-  }
+// ─── Twemoji: 빌드 전 emoji → base64 SVG 사전 캐시 ─────────────────────────
+const emojiCache = new Map();
+
+function emojiToCodepoints(emoji) {
+  return [...emoji]
+    .map((c) => c.codePointAt(0).toString(16).padStart(4, "0"))
+    .join("-")
+    .replace(/-fe0f/g, ""); // variation selector 제거
+}
+
+async function preloadEmojis(emojis) {
+  await Promise.all(
+    [...new Set(emojis)].map(async (emoji) => {
+      const cp = emojiToCodepoints(emoji);
+      const url = `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${cp}.svg`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const svg = await res.text();
+        emojiCache.set(emoji, `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`);
+      } catch { /* fallback: 이모지 생략 */ }
+    })
+  );
+}
+
+function emojiImg(emoji, size) {
+  const src = emojiCache.get(emoji);
+  if (!src) return null;
+  return { type: "img", props: { src, width: size, height: size, style: { display: "flex" } } };
 }
 
 // ─── SVG → PNG 변환 ─────────────────────────────────────────────────────────
 async function renderPng(jsx) {
-  const svg = await satori(jsx, { width: WIDTH, height: HEIGHT, fonts, loadAdditionalAsset });
+  const svg = await satori(jsx, { width: WIDTH, height: HEIGHT, fonts });
   const resvg = new Resvg(svg, {
     fitTo: { mode: "width", value: WIDTH },
   });
@@ -93,13 +105,13 @@ async function renderPng(jsx) {
 }
 
 // ─── 서비스 페이지 OG (Top 3 랭킹) ─────────────────────────────────────────
-function buildServiceOgMarkup(entries, krEntry) {
+function buildServiceOgMarkup(entries, krEntry, medals) {
   const sorted = entries
     .filter((e) => e.krw != null)
     .sort((a, b) => a.krw - b.krw);
   const top3 = sorted.slice(0, 3);
   const baseKrw = krEntry?.krw ?? null;
-  const MEDALS = ["🥇", "🥈", "🥉"];
+  const MEDALS = medals;
 
   return {
     type: "div",
@@ -190,15 +202,11 @@ function buildServiceOgMarkup(entries, krEntry) {
                           gap: "16px",
                         },
                         children: [
-                          {
+                          emojiImg(MEDALS[i], 40) ?? {
                             type: "div",
                             props: {
-                              style: {
-                                fontSize: "38px",
-                                lineHeight: "1",
-                                flexShrink: 0,
-                              },
-                              children: MEDALS[i],
+                              style: { fontFamily: "GmarketSans", fontSize: "26px", fontWeight: 700, flexShrink: 0 },
+                              children: String(i + 1),
                             },
                           },
                           {
@@ -210,13 +218,7 @@ function buildServiceOgMarkup(entries, krEntry) {
                                 gap: "10px",
                               },
                               children: [
-                                {
-                                  type: "div",
-                                  props: {
-                                    style: { fontSize: "28px", lineHeight: "1" },
-                                    children: countryFlag(entry.countryCode),
-                                  },
-                                },
+                                emojiImg(countryFlag(entry.countryCode), 32) ?? null,
                                 {
                                   type: "div",
                                   props: {
@@ -592,6 +594,11 @@ async function main() {
   const entries = getCountryEntries();
   const krEntry = entries.find((e) => e.countryCode === "kr") || null;
 
+  // 이모지 사전 로드 (🥇🥈🥉 + 전국기)
+  const MEDALS = ["🥇", "🥈", "🥉"];
+  const flagEmojis = entries.map((e) => countryFlag(e.countryCode));
+  await preloadEmojis([...MEDALS, ...flagEmojis]);
+
   const ogDir = path.join(DIST_DIR, "og");
   const serviceOgDir = path.join(ogDir, SERVICE_SLUG);
   fs.mkdirSync(serviceOgDir, { recursive: true });
@@ -599,7 +606,7 @@ async function main() {
   let generated = 0;
 
   // 1. 서비스 페이지 OG
-  const serviceMarkup = buildServiceOgMarkup(entries, krEntry);
+  const serviceMarkup = buildServiceOgMarkup(entries, krEntry, MEDALS);
   const servicePng = await renderPng(serviceMarkup);
   fs.writeFileSync(path.join(ogDir, `${SERVICE_SLUG}.png`), servicePng);
   generated++;
