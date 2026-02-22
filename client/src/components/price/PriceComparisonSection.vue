@@ -3,7 +3,7 @@ import { ref, computed, watch } from "vue";
 import { showAlert } from "@/composables/useAlert";
 import { useMyPlan } from "@/composables/useMyPlan";
 import { formatNumber, countryFlag } from "@/lib/utils";
-import { DEFAULT_SITE_URL, getSiteUrl } from "@/lib/site";
+import { DEFAULT_SITE_URL } from "@/lib/site";
 import { Card, CardContent } from "@/components/ui/card";
 import { Share2 } from "lucide-vue-next";
 import ShareModal from "@/components/share/ShareModal.vue";
@@ -29,7 +29,36 @@ const props = defineProps<{
   comparePriceRows: ComparePriceRow[];
 }>();
 
-const siteUrl = getSiteUrl();
+type KakaoSharePayload = {
+  objectType: "feed";
+  content: {
+    title: string;
+    description: string;
+    imageUrl: string;
+    imageWidth: number;
+    imageHeight: number;
+    link: { mobileWebUrl: string; webUrl: string };
+  };
+  buttons: Array<{ title: string; link: { mobileWebUrl: string; webUrl: string } }>;
+};
+
+type KakaoWindow = Window & {
+  Kakao?: {
+    isInitialized: () => boolean;
+    init: (key: string) => void;
+    Share: { sendDefault: (opts: KakaoSharePayload) => void };
+  };
+  __kakaoSdkLoading?: Promise<void>;
+};
+
+const KAKAO_SDK_URL =
+  ((import.meta.env as Record<string, string>).VITE_KAKAO_SDK_URL || "https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js").trim();
+const KAKAO_SDK_DEFAULT_URL = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js";
+const KAKAO_SDK_DEFAULT_INTEGRITY = "sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p";
+const KAKAO_DESC_MAX_CHARS = 140;
+const KAKAO_TITLE_MAX_CHARS = 48;
+const KAKAO_PAYLOAD_SOFT_LIMIT = 9_000;
+const KAKAO_PAYLOAD_HARD_LIMIT = 9_800;
 
 function toNumber(value: unknown): number | null {
   if (value == null) return null;
@@ -195,6 +224,49 @@ const shareTop3Rows = computed<ShareRow[]>(() =>
     .map((r) => ({ countryCode: r.countryCode, country: r.country, krw: r.krw }))
 );
 
+function truncateText(value: string, maxChars: number): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= maxChars) return normalized;
+  return `${normalized.slice(0, Math.max(1, maxChars - 1)).trim()}…`;
+}
+
+function payloadByteLength(payload: unknown): number {
+  try {
+    return new TextEncoder().encode(JSON.stringify(payload)).length;
+  } catch {
+    return JSON.stringify(payload).length * 2;
+  }
+}
+
+async function ensureKakaoSdkLoaded(w: KakaoWindow): Promise<void> {
+  if (w.Kakao) return;
+  if (!w.__kakaoSdkLoading) {
+    w.__kakaoSdkLoading = new Promise<void>((resolve, reject) => {
+      const existing = document.querySelector<HTMLScriptElement>("script[data-kakao-sdk='true']");
+      if (existing) {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error("Kakao SDK 로드 실패")), { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = KAKAO_SDK_URL;
+      script.async = true;
+      script.setAttribute("data-kakao-sdk", "true");
+      if (KAKAO_SDK_URL === KAKAO_SDK_DEFAULT_URL) {
+        script.integrity = KAKAO_SDK_DEFAULT_INTEGRITY;
+        script.crossOrigin = "anonymous";
+      }
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Kakao SDK 로드 실패"));
+      document.head.appendChild(script);
+    });
+  }
+
+  await w.__kakaoSdkLoading;
+  if (!w.Kakao) throw new Error("Kakao SDK 초기화 객체를 찾지 못했습니다.");
+}
+
 function resolveSharePageUrl(): string {
   const rawSlug = typeof props.serviceSlug === "string" ? props.serviceSlug.trim() : "";
   const slug = rawSlug || "youtube-premium";
@@ -210,7 +282,7 @@ const sharePageUrl = computed(() => resolveSharePageUrl());
 const shareImageUrl = computed(() => {
   const rawSlug = typeof props.serviceSlug === "string" ? props.serviceSlug.trim() : "";
   const slug = rawSlug || "youtube-premium";
-  return `${siteUrl}/og/v2/${slug}.png`;
+  return `${DEFAULT_SITE_URL}/og/v2/${slug}.png`;
 });
 const shareTitle = computed(() => `${props.serviceName} 글로벌 랭킹`);
 
@@ -221,21 +293,10 @@ async function onShareKakao(): Promise<void> {
     const env = import.meta.env as Record<string, string>;
     const kakaoKey = env.VITE_KAKAO_JS_KEY || env.VITE_KAKAO_JAVASCRIPT_KEY;
     if (!kakaoKey) { showAlert("카카오 공유 설정이 없습니다.", { type: "error" }); return; }
-    const w = window as unknown as Record<string, unknown>;
-    if (!w.Kakao) {
-      await new Promise<void>((resolve, reject) => {
-        const s = document.createElement("script");
-        s.src = "https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js";
-        s.onload = () => resolve();
-        s.onerror = () => reject(new Error("Kakao SDK 로드 실패"));
-        document.head.appendChild(s);
-      });
-    }
-    const Kakao = w.Kakao as {
-      isInitialized: () => boolean;
-      init: (key: string) => void;
-      Share: { sendDefault: (opts: Record<string, unknown>) => void };
-    };
+    const w = window as KakaoWindow;
+    await ensureKakaoSdkLoaded(w);
+    const Kakao = w.Kakao;
+    if (!Kakao) throw new Error("Kakao SDK 초기화 객체를 찾지 못했습니다.");
     if (!Kakao.isInitialized()) Kakao.init(kakaoKey);
 
     const cheapest = shareTop3Rows.value[0];
@@ -244,18 +305,30 @@ async function onShareKakao(): Promise<void> {
     const descBase = cheapest
       ? `최저가: ${cheapest.country} ${fmtKrw(cheapest.krw)}/월${savings != null && savings > 0 ? ` (${savings}% 절약)` : ""}`
       : `${props.serviceName} 국가별 가격을 비교해보세요`;
-    Kakao.Share.sendDefault({
+    const payload: KakaoSharePayload = {
       objectType: "feed",
       content: {
-        title: shareTitle.value,
-        description: `${descBase}\n${siteDomain}`,
+        title: truncateText(shareTitle.value, KAKAO_TITLE_MAX_CHARS),
+        description: truncateText(`${descBase} · ${siteDomain}`, KAKAO_DESC_MAX_CHARS),
         imageUrl: shareImageUrl.value,
         imageWidth: 800,
         imageHeight: 400,
         link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value },
       },
-      buttons: [{ title: "가격 비교 보기", link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value } }],
-    });
+      buttons: [{ title: "웹으로 보기", link: { mobileWebUrl: sharePageUrl.value, webUrl: sharePageUrl.value } }],
+    };
+
+    const payloadSize = payloadByteLength(payload);
+    if (payloadSize > KAKAO_PAYLOAD_SOFT_LIMIT) {
+      payload.content.description = truncateText(descBase, 90);
+    }
+
+    if (payloadByteLength(payload) > KAKAO_PAYLOAD_HARD_LIMIT) {
+      showAlert("공유 문구가 길어 카카오 공유를 진행할 수 없습니다. 링크 복사를 이용해 주세요.", { type: "error" });
+      return;
+    }
+
+    Kakao.Share.sendDefault(payload);
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") return;
     showAlert(error instanceof Error ? error.message : "카카오 공유에 실패했습니다.", { type: "error" });

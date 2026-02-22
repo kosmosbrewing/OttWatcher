@@ -11,6 +11,7 @@ import { getSiteUrl } from "@/lib/site";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { LoadingSpinner } from "@/components/ui/loading";
+import AdSlot from "@/components/layout/AdSlot.vue";
 import PriceTable from "@/components/price/PriceTable.vue";
 import PlanSelector from "@/components/filter/PlanSelector.vue";
 import SortToggle from "@/components/filter/SortToggle.vue";
@@ -40,6 +41,7 @@ const showTrendTop10 = false;
 const trendData = ref<TrendsResponse | null>(null);
 const trendLoading = ref(false);
 const showVoteModal = ref(false);
+const showAdPreview = import.meta.env.DEV;
 
 // 투표 모달용 국가 목록: 가격 데이터에서 추출
 const voteCountries = computed(() => {
@@ -409,6 +411,8 @@ watch(serviceSlug, async (slug) => {
         :compare-price-rows="comparePriceRows"
       />
 
+      <AdSlot position="top" :preview="showAdPreview" />
+
       <!-- 필터 영역 -->
       <Card class="mb-4 retro-panel">
         <CardContent class="space-y-4">
@@ -500,6 +504,12 @@ watch(serviceSlug, async (slug) => {
         </div>
 
         <aside class="space-y-4">
+          <div class="retro-panel overflow-hidden">
+            <div class="retro-panel-content">
+              <AdSlot position="sidebar" :preview="showAdPreview" />
+            </div>
+          </div>
+
           <!-- 국가 투표 카드 -->
           <div class="retro-panel overflow-hidden">
             <div class="retro-panel-content">
