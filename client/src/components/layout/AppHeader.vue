@@ -96,7 +96,21 @@ onUnmounted(() => {
       <div class="overflow-hidden">
         <div class="retro-titlebar h-11 border-b-0 px-2 bg-transparent">
           <div class="flex h-full w-full items-center gap-4">
-            <span class="h-8 w-8 shrink-0" aria-hidden="true"></span>
+            <RouterLink
+              to="/"
+              aria-label="ShakiLabs 홈"
+              class="inline-flex h-8 w-8 sm:w-auto shrink-0 items-center justify-center sm:justify-start gap-1.5 px-0.5 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span
+                class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-muted/60 ring-1 ring-border/60"
+                aria-hidden="true"
+              >
+                <img src="/logo.png" alt="" class="h-4 w-4 shrink-0" />
+              </span>
+              <span class="hidden sm:inline font-title text-tiny tracking-wide text-foreground/90">
+                ShakiLabs
+              </span>
+            </RouterLink>
             <div class="flex h-full flex-1 items-center justify-center text-center font-title text-caption sm:text-body overflow-hidden">
               <Transition name="headline-fade" mode="out-in">
                 <span
@@ -123,7 +137,7 @@ onUnmounted(() => {
   </header>
 
   <nav
-    class="sticky top-0 z-50 h-10 w-full bg-gradient-to-r from-primary/90 to-primary/45"
+    class="sticky top-0 z-50 h-10 w-full bg-primary"
     aria-label="섹션 이동"
   >
     <div class="container h-full">
