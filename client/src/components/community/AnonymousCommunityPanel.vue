@@ -143,39 +143,43 @@ watch(
     </div>
 
     <!-- 목록 -->
-    <LoadingSpinner v-if="loading" class="retro-panel-content" variant="dots" size="sm" :center="false" />
-    <p v-else-if="error" class="retro-panel-content !text-xs text-destructive">{{ error }}</p>
+    <div class="relative">
+      <!-- 초기 로딩 (글이 아직 없을 때) -->
+      <LoadingSpinner v-if="loading && displayedPosts.length === 0 && !error" class="py-10" variant="dots" size="sm" />
 
-    <ul v-else-if="displayedPosts.length > 0" class="mt-3 mb-3">
-      <li v-for="(post, index) in displayedPosts" :key="post.id">
-        <div v-if="index > 0" class="mx-5 border-t border-border/60" />
-        <RouterLink
-          :to="`/community/${post.id}`"
-          class="block px-5 py-1 transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
-        >
-          <!-- 닉네임 · 날짜 -->
-          <div class="flex items-center gap-1 !text-[11px] text-muted-foreground">
-            <span class="font-semibold text-foreground">{{ post.nickname || "익명 유저" }}</span>
-            <span>·</span>
-            <span>{{ formatTime(post.createdAt) }}</span>
-          </div>
-          <!-- 본문 + 추천·댓글 -->
-          <div class="mt-0.5 flex items-baseline justify-between gap-2">
-            <p class="flex-1 !text-xs text-foreground line-clamp-1">
-              {{ toPreviewTitle(post) }}
-            </p>
-            <span class="shrink-0 flex items-center gap-2 !text-[10px] text-muted-foreground tabular-nums">
-              <span>추천 {{ post.likeCount ?? 0 }}</span>
-              <span>답글 {{ post.commentCount ?? 0 }}</span>
-            </span>
-          </div>
-        </RouterLink>
-      </li>
-    </ul>
+      <p v-else-if="error" class="retro-panel-content !text-xs text-destructive">{{ error }}</p>
 
-    <p v-else class="retro-panel-content !text-xs text-muted-foreground">
-      {{ activeTab === 'popular' ? '아직 인기글이 없습니다.' : '아직 등록된 글이 없습니다.' }}
-    </p>
+      <ul v-else-if="displayedPosts.length > 0" class="mt-3 mb-3 transition-opacity duration-150" :class="loading ? 'opacity-40 pointer-events-none' : ''">
+        <li v-for="(post, index) in displayedPosts" :key="post.id">
+          <div v-if="index > 0" class="mx-5 border-t border-border/60" />
+          <RouterLink
+            :to="`/community/${post.id}`"
+            class="block px-5 py-1 transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-ring"
+          >
+            <!-- 닉네임 · 날짜 -->
+            <div class="flex items-center gap-1 !text-[11px] text-muted-foreground">
+              <span class="font-semibold text-foreground">{{ post.nickname || "익명 유저" }}</span>
+              <span>·</span>
+              <span>{{ formatTime(post.createdAt) }}</span>
+            </div>
+            <!-- 본문 + 추천·댓글 -->
+            <div class="mt-0.5 flex items-baseline justify-between gap-2">
+              <p class="flex-1 !text-xs text-foreground line-clamp-1">
+                {{ toPreviewTitle(post) }}
+              </p>
+              <span class="shrink-0 flex items-center gap-2 !text-[10px] text-muted-foreground tabular-nums">
+                <span>추천 {{ post.likeCount ?? 0 }}</span>
+                <span>답글 {{ post.commentCount ?? 0 }}</span>
+              </span>
+            </div>
+          </RouterLink>
+        </li>
+      </ul>
+
+      <p v-else class="retro-panel-content !text-xs text-muted-foreground">
+        {{ activeTab === 'popular' ? '아직 인기글이 없습니다.' : '아직 등록된 글이 없습니다.' }}
+      </p>
+    </div>
 
     <!-- 글쓰기 -->
     <div class="border-t border-border/60 px-4 pt-3 pb-3">
