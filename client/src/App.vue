@@ -94,7 +94,7 @@ onMounted(async () => {
 <style scoped>
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity 0.18s ease;
+  transition: opacity 0.2s ease;
 }
 
 .page-fade-enter-from,
