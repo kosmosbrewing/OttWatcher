@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
+  "framework": null,
   "installCommand": "cd client && npm ci",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
@@ -46,6 +46,10 @@
     }
   ],
   "rewrites": [
+    { "source": "/ott/assets/:path*", "destination": "/assets/:path*" },
+    { "source": "/ott/fonts/:path*", "destination": "/fonts/:path*" },
+    { "source": "/ott/favicon.png", "destination": "/favicon.png" },
+    { "source": "/ott/:path*", "destination": "/index.html" },
     {
       "source": "/about",
       "destination": "/about/index.html"
