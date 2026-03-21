@@ -137,7 +137,7 @@ onUnmounted(() => {
   </header>
 
   <nav
-    class="sticky top-0 z-50 h-10 w-full bg-primary"
+    class="sticky top-0 z-50 h-12 w-full bg-primary"
     aria-label="섹션 이동"
   >
     <div class="container h-full">
