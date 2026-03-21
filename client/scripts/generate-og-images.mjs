@@ -356,7 +356,7 @@ function buildServiceOgMarkup(entries, krEntry) {
                 type: "div",
                 props: {
                   style: { fontSize: "18px", fontWeight: 600, color: COLORS.primary },
-                  children: "ott.shakilabs.com",
+                  children: "shakilabs.com/ott",
                 },
               },
             ],
@@ -546,7 +546,7 @@ function buildCountryOgMarkup(entry, krEntry, allEntries) {
               paddingTop: "12px",
             },
             children: [
-              { type: "div", props: { style: { fontSize: "18px", fontWeight: 600, color: COLORS.primary }, children: "ott.shakilabs.com" } },
+              { type: "div", props: { style: { fontSize: "18px", fontWeight: 600, color: COLORS.primary }, children: "shakilabs.com/ott" } },
             ],
           },
         },

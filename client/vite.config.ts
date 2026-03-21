@@ -5,7 +5,7 @@ import tailwind from "tailwindcss";
 import autoprefixer from "autoprefixer";
 
 export default defineConfig({
-  base: "/",
+  base: "/ott/",
   css: {
     postcss: {
       plugins: [tailwind(), autoprefixer()],

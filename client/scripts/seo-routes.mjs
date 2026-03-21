@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const SITE_URL = "https://ott.shakilabs.com";
+export const SITE_URL = "https://shakilabs.com/ott";
 export const SERVICE_SLUG = "youtube-premium";
 
 const PRICE_DATA_PATH = path.resolve(
