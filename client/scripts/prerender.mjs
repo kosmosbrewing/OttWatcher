@@ -7,6 +7,8 @@ import {
   getAllPrerenderRoutes,
   getCountryEntries,
 } from "./seo-routes.mjs";
+import { buildPrerenderHeader, buildPrerenderFooter } from "./prerender-layout.mjs";
+import { buildRichContent } from "./prerender-content.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -250,11 +252,27 @@ function buildRouteHtml(templateHtml, route, countryMap) {
   html = updateMetaTag(html, 'name="twitter:image"', ogImage);
   html = injectJsonLd(html, meta.jsonLd);
 
+  // 기존 prerender 요소 제거 (재빌드 대비)
+  html = html.replace(/\n?\s*<header data-seo-prerender[\s\S]*?<\/header>/i, "");
+  html = html.replace(/\n?\s*<article data-seo-prerender[\s\S]*?<\/article>/i, "");
+  html = html.replace(/\n?\s*<footer data-seo-prerender[\s\S]*?<\/footer>/i, "");
+  html = html.replace(/\n?\s*<div data-seo-prerender[\s\S]*?<\/div>/i, "");
+
+  // 리치 콘텐츠 우선 시도 → 없으면 기본 fallback
+  const rich = buildRichContent(route);
+  const mainContent = rich || `<div data-seo-prerender>${buildFallbackHtml(meta)}</div>`;
+  const headerHtml = buildPrerenderHeader();
+  const footerHtml = buildPrerenderFooter();
+
+  const injection = `${headerHtml}${mainContent}${footerHtml}`;
+
   if (html.includes('<div id="app"></div>')) {
     html = html.replace(
       '<div id="app"></div>',
-      `<div id="app"></div>\n    <div data-seo-prerender>${buildFallbackHtml(meta)}</div>`
+      `<div id="app"></div>${injection}`
     );
+  } else {
+    html = html.replace("</body>", `${injection}\n  </body>`);
   }
 
   return html;

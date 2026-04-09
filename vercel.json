@@ -4,6 +4,8 @@
   "installCommand": "cd client && npm ci",
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "redirects": [
     { "source": "/favicon.ico", "destination": "/favicon.png", "permanent": true }
   ],
