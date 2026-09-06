@@ -10,7 +10,12 @@
 // 스타일도 인라인 색상 대신 .sp-* 클래스만 쓴다 — 뷰에 그대로 심으면 다크 모드에서
 // 하드코딩 색상이 깨지기 때문이다(스타일은 assets/css/seo-content.css).
 
+import * as D from "./seo-discoveries.mjs";
+
 let _data = null;
+// conversionAudit는 KRW 보정 "전"의 원본을 봐야 한다. 보정본을 넘기면
+// 왕복 오차가 이미 지워진 상태라 "원화값은 파생값"이라는 검증이 통과해 버린다.
+let _rawPriceSeed = null;
 let _history = null;
 let _changelog = null;
 let _services = null;
@@ -22,7 +27,7 @@ let _services = null;
 // 런타임 priceTransforms.normalizePricesResponse와 같은 보정: 원화 표시 국가의
 // converted.krw를 현지 정가로 덮는다. 시드의 converted.krw는 KRW→USD→KRW 왕복이라
 // 14,900이 14,897로 어긋난 채 정적 콘텐츠(절약률·비교표)에 새어 나가고 있었다.
-function normalizeKrwSeed(priceSeed) {
+export function normalizeKrwSeed(priceSeed) {
   if (!priceSeed || !Array.isArray(priceSeed.prices)) return priceSeed;
   return {
     ...priceSeed,
@@ -40,6 +45,7 @@ function normalizeKrwSeed(priceSeed) {
 }
 
 export function configureSeoContent({ priceSeed, history, changelog, services }) {
+  _rawPriceSeed = priceSeed;
   _data = normalizeKrwSeed(priceSeed);
   _history = history;
   _changelog = changelog;
@@ -244,6 +250,9 @@ function getHomeFaqItems() {
     Number.isFinite(krIndividual) && Number.isFinite(krLite)
       ? krIndividual - krLite
       : null;
+  // Lite 비율은 "약 50~60%"로 하드코딩돼 있었는데 시드의 실제 범위는 그 밖까지 걸친다.
+  // 문장이 표와 어긋나지 않도록 범위 자체를 시드에서 뽑는다.
+  const liteRows = D.litePlans(data).members;
 
   return [
     {
@@ -276,7 +285,7 @@ function getHomeFaqItems() {
     },
     {
       q: "유튜브 프리미엄 라이트(Lite) 플랜이 뭔가요?",
-      a: `Lite 플랜은 일부 국가에서만 제공되는 저가 요금제로, YouTube Music이 제외된 "광고 제거 전용" 플랜입니다. 가격은 일반 개인 플랜의 약 50~60% 수준이며, 한국에서도 월 8,500원에 이용할 수 있습니다.`,
+      a: `Lite 플랜은 일부 국가에서만 제공되는 저가 요금제로, YouTube Music이 제외된 "광고 제거 전용" 플랜입니다. 저희가 확인한 ${liteRows.length}개국에서 개인 플랜 대비 ${pct1(Math.min(...liteRows.map((r) => r.ratio)) * 100)}~${pct1(Math.max(...liteRows.map((r) => r.ratio)) * 100)} 수준이고, 한국에서는 월 ${fmtWon(krLite)}에 이용할 수 있습니다.`,
     },
   ];
 }
@@ -362,7 +371,10 @@ function getTrendsFaqItems() {
     },
     {
       q: "환율이 바뀌면 순위도 바뀌나요?",
-      a: "네. 원화 환산 최저가 순위는 환율에 따라 달라질 수 있습니다. 현지 요금이 그대로여도 해당 통화가 원화 대비 강세면 환산 가격이 올라 순위가 밀리고, 약세면 내려갑니다. 순위와 함께 현지 통화 가격을 같이 확인하는 것이 안전합니다.",
+      // 이 표의 환율은 두 층이다: ①통화→달러(달러 환산가 안에 이미 굳어 있음)와
+      // ②달러→원(전 국가 공통 배수 하나). 층을 구분하지 않으면 본문의
+      // "환율이 움직여도 외국끼리 순위는 안 바뀐다"와 정면으로 부딪힌다.
+      a: `환율이 어느 층에서 움직이는지에 따라 다릅니다. <strong>각국 통화의 대달러 환율</strong>이 움직이면 순위가 바뀝니다 — 현지 요금이 그대로여도 그 통화가 강세면 달러 환산가가 올라 순위가 밀립니다. 다만 이 표는 통화별 대달러 환율을 따로 들고 있지 않고 달러 환산가만 담고 있어서, 그 변화는 다음 요금 조사에서 한꺼번에 반영됩니다. 반대로 <strong>달러-원 환율</strong>은 모든 국가에 똑같이 곱해지는 배수 하나라, 그것만 움직이면 원화로 매겨진 한국의 자리만 옮겨지고 나머지 국가끼리의 순서는 바뀌지 않습니다. 순위와 함께 현지 통화 가격을 같이 확인하는 것이 안전합니다.`,
     },
   ];
 }
@@ -642,6 +654,631 @@ function buildCountryContent(countryCode) {
 // now covers what the runtime HomeView actually shows -- the service catalogue
 // -- plus the comparison methodology, so the two URLs no longer compete.
 // =========================
+// =========================
+// 데이터 파생 관찰 — 44개국 자체 조사 시드를 전수로 훑어 나온 사실만 싣는다.
+//
+// 세 페이지가 같은 시드를 쓰므로 축을 명확히 나눈다. 축이 겹치면 세 URL이
+// 서로의 중복 콘텐츠가 되고, 그건 "같은 글을 세 번 실은 것"과 구분되지 않는다.
+//   /                        → 데이터가 무엇으로 이루어져 있는가(커버리지·요금제·통화·표기)
+//   /youtube-premium         → 국가 사이의 가격 구조(군집·역전·손익분기)
+//   /youtube-premium/trends  → 환산과 환율이 순위에 미치는 영향(견고성)
+//
+// 숫자는 한 개도 하드코딩하지 않는다. 전부 seo-discoveries.mjs가 시드에서 계산한다.
+// 시드가 갱신되면 산문의 숫자는 따라 움직이지만 "서술"은 따라 움직이지 않으므로,
+// 리터럴 앵커 테스트(scripts/seo-discoveries.test.mjs)가 먼저 red가 되게 해 뒀다.
+// =========================
+
+const pct1 = (value) => `${Number(value).toFixed(1)}%`;
+const num = (value) => Number(value).toLocaleString("ko-KR");
+// 환율 같은 고정밀 값은 기본 toLocaleString이 소수 3자리에서 잘라 버린다(1,385.742).
+// 시드 원값을 그대로 보여야 "달러값 × 이 수 = 원화값"이라는 검산이 재현된다.
+const numExact = (value) =>
+  Number(value).toLocaleString("ko-KR", { maximumFractionDigits: 8 });
+const density = (value) => Number(value).toFixed(1);
+// 0.02%처럼 작은 비율은 소수 1자리로 찍으면 "0.0%"가 돼 문장이 거짓말을 한다
+const pct2 = (value) => `${Number(value).toFixed(2)}%`;
+
+/**
+ * 받침 유무 판정 — 조사(이/가, 은/는, 와/과, 을/를)를 데이터에서 온 단어에 붙이기 위한 것.
+ * 국가명·숫자가 시드에서 오므로 조사를 고정하면 데이터가 바뀔 때 "홍콩가"처럼 깨진다.
+ * 숫자는 한국어 발음 기준(0영·1일·3삼·6육·7칠·8팔은 받침, 2이·4사·5오·9구는 없음).
+ */
+function hasFinalConsonant(word) {
+  const ch = String(word).trim().slice(-1);
+  if (/[0-9]/.test(ch)) return ["0", "1", "3", "6", "7", "8"].includes(ch);
+  const code = ch.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) return (code - 0xac00) % 28 !== 0;
+  return false;
+}
+
+/** josa("홍콩", "이", "가") → "홍콩이" / josa("싱가포르", "이", "가") → "싱가포르가" */
+function josa(word, withFinal, withoutFinal) {
+  return `${word}${hasFinalConsonant(word) ? withFinal : withoutFinal}`;
+}
+
+/** 루트 허브: 데이터의 생김새 — 커버리지·요금제·통화·표기 관습. */
+function buildLandingDatasetSection() {
+  const data = loadData();
+  const coverage = D.planCoverage(data);
+  const currency = D.currencyStructure(data);
+  const notation = D.notationConventions(data);
+  const audit = D.conversionAudit(_rawPriceSeed);
+  const lite = D.litePlans(data);
+  const continents = D.continentStats(data);
+  const gapDays = D.surveyDateGapDays(data);
+  const billing = D.billingPeriodCoverage(data);
+  const denom = D.savingsDenominatorAsymmetry(data);
+  const services = loadServices().services || [];
+  const declaredPlans = services.find((s) => s.id === data.serviceId)?.plans || [];
+  const declaredCells = coverage.countryCount * declaredPlans.length;
+  const eurozone = currency.shared[0] || null;
+  const continentText = continents
+    .slice()
+    .sort((a, b) => b.count - a.count)
+    .map((c) => `${getContinentLabel(c.continent)} ${c.count}개국`)
+    .join(" · ");
+  const topTwo = continents.slice().sort((a, b) => b.count - a.count).slice(0, 2);
+  const topTwoCount = topTwo.reduce((sum, c) => sum + c.count, 0);
+  const smallest = continents.slice().sort((a, b) => a.count - b.count)[0];
+  const planLabel = new Map(declaredPlans.map((plan) => [plan.id, plan.name]));
+  const planOrder = declaredPlans.map((plan) => plan.id);
+  const comboRows = D.planCombinations(data).map((combo) => ({
+    ...combo,
+    // 조합 라벨은 등록부가 선언한 순서(프리미엄 → 패밀리 → …)로 읽는다.
+    // 내부 키는 정렬된 id 문자열이라 그대로 쓰면 "패밀리 + 프리미엄"처럼 뒤집혀 보인다.
+    label: [...combo.ids]
+      .sort((a, b) => planOrder.indexOf(a) - planOrder.indexOf(b))
+      .map((id) => planLabel.get(id) || id)
+      .join(" + "),
+  }));
+  const liteRankText = lite.members.map((m) => `${m.rank}위 ${m.country}`).join(" · ");
+
+  return `      <h2 class="${H2}">이 요금표를 전수로 훑어 나온 것들</h2>
+      <p class="${P}">
+        아래는 저희가 직접 조사한 ${coverage.countryCount}개국 요금표를 한 칸도 빼지 않고 세어서 얻은 관찰입니다.
+        바깥에서 가져온 통계가 아니라 이 표 자체의 성질이고, 전부 요금 조사일 ${data.lastUpdated} 한 시점의 자료입니다.
+        아래 숫자는 문장에 적어 둔 것이 아니라 빌드할 때 저장소에 커밋된 시드에서 계산합니다 —
+        요금표가 갱신되면 이 글의 수치도 같이 바뀝니다.
+      </p>
+
+      <h3 class="${H3}">요금제 칸 ${declaredCells}개 중 ${coverage.cells}개만 차 있습니다</h3>
+      <p class="${P}">
+        서비스 등록부는 이 서비스에 ${declaredPlans.length}가지 요금제(${declaredPlans.map((p) => p.name).join(" · ")})를 선언합니다.
+        ${coverage.countryCount}개국 × ${declaredPlans.length}가지 = ${declaredCells}칸인데 실제로 값이 있는 칸은 ${coverage.cells}개(${pct1((coverage.cells / declaredCells) * 100)})뿐입니다.
+        개인 플랜만 ${coverage.counts.individual}개국 전부에 있고, 패밀리는 ${coverage.counts.family}개국,
+        라이트는 ${coverage.counts.lite}개국, 듀오는 ${coverage.counts.duo}개국에만 있습니다.
+        이 사이트의 모든 순위가 개인 플랜 기준인 것은 취향이 아니라,
+        ${coverage.countryCount}개국을 한 줄에 세울 수 있는 요금제가 그것 하나뿐이기 때문입니다.
+      </p>
+
+      <h3 class="${H3}">패밀리가 없는 나라는 딱 한 곳이고, 하필 기준 국가입니다</h3>
+      <p class="${P}">
+        ${coverage.counts.family}개국에 패밀리 요금이 있고 빠진 나라는 ${coverage.missingFamily.join(" · ")} 하나입니다.
+        ${coverage.missingFamily[0]}이 절약률의 기준선이라 결과가 조금 이상해집니다 —
+        개인 플랜은 "${coverage.missingFamily[0]} 대비 몇 % 싼가"를 말할 수 있지만,
+        패밀리는 비교할 기준값 자체가 없어 절약률을 만들 수 없습니다.
+        가격표에서 요금제를 패밀리로 바꾸면 절약률 배지가 사라지는 이유가 이것입니다.
+      </p>
+
+      <h3 class="${H3}">라이트는 가격대 양 끝에만 있습니다</h3>
+      <p class="${P}">
+        음악 서비스를 뺀 저가 플랜인 라이트를 제공하는 나라는 ${coverage.counts.lite}곳입니다.
+        개인 요금이 싼 순으로 세우면 ${liteRankText}입니다.
+        ${lite.gapStart}위부터 ${lite.gapEnd}위까지 ${lite.gapLength}개국이 연속으로 라이트를 갖고 있지 않습니다.
+        저가 플랜이 가격 부담을 낮추기 위한 것이라면 중간 가격대에 가장 촘촘해야 할 텐데,
+        이 데이터에서는 정확히 그 구간이 비어 있고 최저가권 ${lite.members.filter((m) => m.rank <= lite.gapStart).length}개국과
+        고가권 ${lite.members.filter((m) => m.rank > lite.gapEnd).length}개국에만 몰려 있습니다.
+      </p>
+
+      <h3 class="${H3}">환율을 거치지 않고 비교할 수 있는 조합은 ${num(currency.totalPairs)}쌍 중 ${currency.sameCurrencyPairs}쌍뿐</h3>
+      <p class="${P}">
+        ${coverage.countryCount}개국이 쓰는 통화는 ${currency.currencyCount}종입니다.
+        두 나라 이상이 함께 쓰는 통화는 ${eurozone ? `${eurozone.currency} 하나(${eurozone.countries.length}개국)` : "없고"}뿐이고,
+        나머지 ${currency.soloCurrencyCount}개 통화는 각각 한 나라만 씁니다.
+        나라를 둘씩 짝지으면 ${num(currency.totalPairs)}쌍인데, 그중 통화가 같아 정가를 그대로 견줄 수 있는 조합은 ${currency.sameCurrencyPairs}쌍입니다.
+        나머지 ${num(currency.convertedPairs)}쌍은 예외 없이 환산을 한 번 거치며, 그 환산에는 요금 조사일이 아니라
+        환율 기준일(${data.exchangeRateDate})의 값이 들어갑니다.
+      </p>
+
+      <h3 class="${H3}">정가 표기에도 나라마다 관습이 있습니다</h3>
+      <p class="${P}">
+        ${coverage.countryCount}개국 현지 정가 중 ${notation.lastDigitNine}개국은 마지막 자리가 9입니다.
+        소수점을 쓰는 나라가 ${notation.decimals}개국이고 그중 ${notation.decimal99}개국은 .99로 끝납니다.
+        정수만 쓰는 나라는 ${notation.integers}개국인데, 한국(${num(14900)}원)·일본·베트남·인도네시아처럼
+        최소 화폐 단위가 커서 소수점이 쓰이지 않는 통화가 여기 포함됩니다.
+        그래서 "9로 끝나니 할인가"처럼 읽으면 안 됩니다 — 끝자리 9는 국가별 표기 관습이지 가격 수준의 정보가 아닙니다.
+      </p>
+
+      <h3 class="${H3}">표의 원화 값은 관측이 아니라 계산 결과입니다</h3>
+      <p class="${P}">
+        요금표의 환산 칸 ${audit.checked}개를 전부 검산하면 예외 없이
+        "달러값 × ${numExact(audit.rate)}을 반올림한 값"과 일치합니다(불일치 ${audit.mismatches.length}건).
+        원화 열은 각 나라에서 원화로 관측한 값이 아니라 달러값의 함수라는 뜻입니다.
+        기준 국가도 같은 파이프라인을 타기 때문에, 원화로 매겨진 정가가 왕복 환산을 거치면
+        ${audit.roundTrip.map((r) => `${num(r.local)}원 → ${num(r.derived)}원`).join(", ")}으로 어긋납니다.
+        그래서 화면과 정적 HTML은 원화 표시 국가에 한해 환산값 대신 현지 정가를 되돌려 씁니다.
+      </p>
+
+      <h3 class="${H3}">날짜가 두 개인 이유</h3>
+      <p class="${P}">
+        요금 조사일 ${data.lastUpdated}과 환율 기준일 ${data.exchangeRateDate}은 ${gapDays}일 떨어져 있습니다.
+        앞의 날짜는 각국 현지 통화 정가를 사람이 확인한 날이고, 뒤의 날짜는 그 정가를 원화로 바꾸는 배수를 가져온 날입니다.
+        성격이 다른 두 관측이라 하나로 묶어 "데이터 기준일"이라고 적으면 둘 중 하나는 반드시 거짓이 됩니다.
+        이 사이트가 두 날짜를 어디서나 따로 표기하는 이유입니다.
+      </p>
+
+      <h3 class="${H3}">연 단위 요금은 ${billing.cells}칸이 전부 비어 있습니다</h3>
+      <p class="${P}">
+        요금제 칸 하나에는 월 요금과 연 요금 두 자리가 있습니다.
+        월 요금은 ${billing.monthly}칸이 전부 채워져 있는데, 연 요금이 채워진 칸은 ${billing.yearly}개입니다.
+        그래서 이 사이트의 어떤 순위도 연간 결제 할인을 반영하지 않습니다.
+        일부 국가에서 연간 결제가 월 결제보다 싼 것으로 알려져 있지만, 저희 조사가 그 값을 담고 있지 않으므로
+        "연간으로 결제하면 얼마"라는 계산은 여기서 하지 않습니다.
+        표에 없는 것을 있는 것처럼 계산하면 그 순간부터 순위표 전체를 믿을 수 없게 됩니다.
+      </p>
+
+      <h3 class="${H3}">같은 격차가 ${pct1(denom.cheaperPercentFromBase)}로도 ${pct1(denom.pricierPercentFromCheapest)}로도 읽힙니다</h3>
+      <p class="${P}">
+        이 사이트의 절약률은 전부 한국을 분모로 씁니다.
+        그래서 ${denom.cheapest.country} ${formatKrw(denom.cheapest.krw)}은 "한국보다 ${pct1(denom.cheaperPercentFromBase)} 싸다"로 표시됩니다.
+        같은 두 값을 ${denom.cheapest.country} 쪽에서 보면 한국은 "${denom.cheapest.country}보다 ${pct1(denom.pricierPercentFromCheapest)} 비싸다"가 됩니다.
+        가격 차이는 하나인데 퍼센트는 ${pct1(denom.cheaperPercentFromBase)} 대 ${pct1(denom.pricierPercentFromCheapest)},
+        ${(denom.pricierPercentFromCheapest / denom.cheaperPercentFromBase).toFixed(1)}배로 벌어집니다.
+      </p>
+      <p class="${P}">
+        분모가 다르기 때문이지 계산이 틀린 것이 아닙니다.
+        절약률은 구조상 100%를 넘을 수 없고(요금이 0원이 되어야 100%입니다), 인상률에는 상한이 없습니다.
+        이 표에서 가장 싼 나라와 가장 비싼 나라를 절약률로 재면 최대 ${pct1(denom.maxSavingsPercent)}지만,
+        같은 두 나라를 인상률로 재면 ${pct1(denom.maxMarkupPercent)}입니다.
+        그래서 절약률만 보면 국가 사이 격차가 실제보다 작아 보입니다.
+        표의 퍼센트는 "한국을 기준으로 얼마나 아끼는가"로만 읽으시고,
+        나라와 나라를 견줄 때는 퍼센트가 아니라 금액 자체를 보는 편이 안전합니다.
+      </p>
+
+      <h3 class="${H3}">"세계 최저가"가 아니라 "이 표의 최저가"입니다</h3>
+      <p class="${P}">
+        이 표에 실린 ${coverage.countryCount}개국은 이 서비스가 제공되는 모든 나라가 아니라 저희가 직접 확인한 나라입니다.
+        따라서 표의 최저·최고는 조사 범위 안에서의 최저·최고이고, 표에 없는 나라에 대해서는 아무 말도 하지 않습니다.
+        국가 코드는 ${coverage.countryCount}개가 전부 서로 다른 두 자리 코드라 같은 나라가 두 줄로 들어간 경우는 없지만,
+        빠진 나라가 있을 가능성은 언제나 열려 있습니다.
+      </p>
+
+      <h3 class="${H3}">이 데이터로 답할 수 있는 질문과 없는 질문</h3>
+      <p class="${P}">
+        지금 확보한 것은 ${coverage.countryCount}개국 × 1시점 = ${coverage.countryCount}개 관측입니다.
+        "어느 나라가 더 싼가"는 ${num(currency.totalPairs)}쌍 전부에 답할 수 있습니다 — 같은 시점끼리의 비교이기 때문입니다.
+        반면 "어느 나라가 올랐나"에 답하려면 같은 나라를 서로 다른 날짜에 두 번 이상 조사한 기록이 필요한데,
+        그 조건을 채운 나라는 현재 0개국입니다. 그래서 이 사이트는 어느 페이지에서도 시점 간 가격 변동을 표시하지 않습니다.
+      </p>
+
+      <h3 class="${H3}">표본은 대륙별로 고르지 않습니다</h3>
+      <p class="${P}">
+        수록 국가를 대륙으로 나누면 ${continentText}입니다.
+        ${josa(getContinentLabel(topTwo[0].continent), "과", "와")} ${getContinentLabel(topTwo[1].continent)}가 ${coverage.countryCount}개국 중 ${topTwoCount}개국(${pct1((topTwoCount / coverage.countryCount) * 100)})이라,
+        이 표의 "전체 평균"은 사실상 그 두 대륙의 평균에 가깝습니다.
+        반대쪽 끝에는 ${getContinentLabel(smallest.continent)}처럼 국가 수가 ${smallest.count}개뿐인 대륙이 있어,
+        그 평균은 한두 나라가 통째로 결정합니다.
+        대륙 분류 자체도 데이터 제공자의 선택입니다 — 이 표는 튀르키예를 유럽으로 넣었고,
+        대륙 필터의 결과는 그 선택을 그대로 물려받습니다.
+      </p>
+
+      <h3 class="${H3}">${coverage.countryCount}개국이 보이는 요금제 조합은 ${comboRows.length}가지뿐입니다</h3>
+      <p class="${P}">
+        나라마다 어떤 요금제를 갖고 있는지를 조합으로 묶으면 ${comboRows.length}가지가 나옵니다.
+        "${comboRows[0].label}" 조합이 ${comboRows[0].countries.length}개국(${pct1((comboRows[0].countries.length / coverage.countryCount) * 100)})에 이르고,
+        나머지 ${comboRows.slice(1).reduce((sum, r) => sum + r.countries.length, 0)}개국이 ${comboRows.length - 1}가지로 흩어집니다.
+        ${declaredPlans.length}가지를 모두 갖춘 나라는 ${comboRows.find((r) => r.ids.length === declaredPlans.length)?.countries.join(" · ") || "없습니다"} 한 곳뿐이고,
+        패밀리 없이 라이트만 있는 나라도 ${comboRows.find((r) => r.ids.join("+") === "individual+lite")?.countries.join(" · ") || "-"} 한 곳뿐입니다.
+      </p>
+      <div class="sp-table-scroll"><table class="${TABLE}">
+        <thead>
+          <tr>
+            <th class="${TH}">요금제 조합</th>
+            <th class="${TH}">국가 수</th>
+            <th class="${TH}">해당 국가</th>
+          </tr>
+        </thead>
+        <tbody>${comboRows
+          .map(
+            (r) => `<tr>
+            <td class="${TD}">${r.label}</td>
+            <td class="${TD}">${r.countries.length}개국</td>
+            <td class="${TD}">${r.countries.length > 6 ? `${r.countries.slice(0, 6).join(" · ")} 외 ${r.countries.length - 6}개국` : r.countries.join(" · ")}</td>
+          </tr>`
+          )
+          .join("")}</tbody>
+      </table></div>
+
+      <h3 class="${H3}">"개인 플랜"은 서비스마다 다른 물건을 가리킵니다</h3>
+      <p class="${P}">
+        서비스 등록부에는 ${services.length}개 서비스가 올라와 있고 그중 비교 가능한 것은 ${services.filter((x) => x.active).length}개입니다.
+        나머지가 준비 중인 이유는 데이터를 못 구해서가 아니라 축이 맞지 않아서입니다.
+        등록부의 individual 자리에 들어가는 상품이 서비스마다 다르기 때문입니다 —
+        ${services
+          .filter((x) => (x.plans || []).some((plan) => plan.id === "individual"))
+          .slice(0, 4)
+          .map((x) => `${x.name} "${x.plans.find((plan) => plan.id === "individual").name}"`)
+          .join(", ")}처럼 서로 다른 상품이 같은 슬롯을 씁니다.
+        같은 슬롯 이름이 서비스마다 다른 상품을 가리키므로, 서비스를 가로질러 "개인 플랜끼리" 정렬하면
+        서로 다른 물건의 가격을 한 줄에 세우게 됩니다. 지금 순위표가 한 서비스 안에서만 그려지는 이유입니다.
+      </p>
+
+`;
+}
+
+/** 서비스 가격표: 국가 사이의 가격 구조 — 군집·역전·손익분기. */
+function buildHomeStructureSection() {
+  const data = loadData();
+  const spread = D.globalSpread(data);
+  const bands = D.usdBandDensity(data);
+  const neighborhood = D.baseNeighborhood(data);
+  const gaps = D.adjacentGaps(data);
+  const continents = D.continentStats(data);
+  const family = D.familyMultiples(data);
+  const reversalsAll = D.familyRankReversals(data);
+  const eurozone = D.eurozoneContrast(data);
+  const eurozoneNames = eurozone.members.map((m) => m.country);
+  const reversals = D.familyRankReversals(data, eurozoneNames);
+  const split = D.familySplitThresholds(data);
+  const lite = D.litePlans(data);
+  const duo = D.duoPlans(data);
+
+  const bandLow = bands.find((b) => b.lo === 5);
+  const bandMid = bands.find((b) => b.lo === 10);
+  const bandHigh = bands.find((b) => b.lo === 15);
+  const africa = continents.find((c) => c.continent === "africa");
+  const northAmerica = continents.find((c) => c.continent === "north-america");
+  const europe = continents.find((c) => c.continent === "europe");
+  const asia = continents.find((c) => c.continent === "asia");
+  const nearestUp = neighborhood.within[0];
+  const bigGaps = gaps.big;
+  const upperBig = bigGaps.filter((g) => g.fromKrw >= neighborhood.baseKrw)[0];
+  const heads4 = split.levels.find((l) => l.heads === 4);
+  const heads3 = split.levels.find((l) => l.heads === 3);
+  const liteOutlier = lite.minRatio;
+  const liteRest = lite.members.filter((m) => m.country !== liteOutlier.country);
+  const liteBase = lite.members.find((m) => m.code === String(data.baseCountry).toUpperCase());
+  const duoVsFamily = duo.filter((x) => x.vsFamily != null).map((x) => x.vsFamily);
+  // 원화 반올림이 배수를 정확히 2.000으로 보이게 만드는 사례를 데이터에서 찾는다.
+  // 나라 이름을 고정하면 시드가 바뀔 때 문장이 사례 없는 주장을 하게 된다.
+  const indiaLike =
+    family.rows.find((r) => {
+      const row = data.prices.find((p) => p.country === r.country);
+      return (
+        r.multiple !== 2 &&
+        row?.converted?.family?.krw === row?.converted?.individual?.krw * 2
+      );
+    }) || family.rows[0];
+  const indiaRow = data.prices.find((p) => p.country === indiaLike.country);
+  const indiaKrw = {
+    individual: indiaRow.converted.individual.krw,
+    family: indiaRow.converted.family.krw,
+  };
+  const topReversal = reversals.top[0];
+  const secondReversal = reversals.top.find(
+    (p) => p.a.country !== topReversal.a.country && p.b.country !== topReversal.b.country
+  );
+
+  return `      <h2 class="${H2}">${data.prices.length}개국 표를 전수로 계산해 본 결과</h2>
+      <p class="${P}">
+        아래 수치는 위 가격표를 그대로 계산해 얻은 것입니다.
+        전부 요금 조사일 ${data.lastUpdated} 한 시점의 자료이며, 시점 간 가격 변동은 다루지 않습니다.
+      </p>
+
+      <h3 class="${H3}">격차는 ${spread.spread}배지만 가격대가 연속이지는 않습니다</h3>
+      <p class="${P}">
+        최저 ${spread.cheapest.country} ${formatKrw(spread.cheapest.krw)}, 최고 ${spread.priciest.country} ${formatKrw(spread.priciest.krw)}로 ${spread.spread}배 차이가 납니다.
+        그런데 그 사이가 고르게 채워져 있지 않습니다. 달러 기준으로
+        ${bandLow.lo}~${bandLow.hi}달러 구간에 ${bandLow.count}개국(달러당 ${density(bandLow.density)}개국),
+        ${bandHigh.lo}~${bandHigh.hi}달러 구간에 ${bandHigh.count}개국(달러당 ${density(bandHigh.density)}개국)이 몰려 있는데,
+        그 사이 ${bandMid.lo}~${bandMid.hi}달러 구간은 ${bandMid.count}개국(달러당 ${density(bandMid.density)}개국)으로 양옆보다 성깁니다.
+        가격대는 두 덩어리이고 그 사이에 골짜기가 있습니다.
+      </p>
+
+      <h3 class="${H3}">한국은 그 골짜기 안, 그것도 아래쪽 벽에 붙어 있습니다</h3>
+      <p class="${P}">
+        한국 ${formatKrw(neighborhood.baseKrw)}은 ${neighborhood.total}개국 중 싼 순 ${neighborhood.rankAsc}위입니다.
+        ±${Math.round(neighborhood.tolerance * 100)}% 안에 든 나라는
+        ${neighborhood.within.map((r) => `${r.country}(${formatKrw(r.krw)})`).join(" · ")} ${neighborhood.within.length}곳인데
+        ${neighborhood.cheaperWithin.length === 0 ? "전부 한국보다 비쌉니다" : `그중 ${neighborhood.cheaperWithin.length}곳만 한국보다 쌉니다`}.
+        한국보다 싼 나라 중 가장 가까운 곳은 ${neighborhood.nearestCheaper.country}(${formatKrw(neighborhood.nearestCheaper.krw)})로 ${Math.abs(neighborhood.nearestCheaperGapPercent)}% 아래입니다.
+        바로 위와는 ${num(nearestUp.krw - neighborhood.baseKrw)}원 차이인데 바로 아래와는 ${num(neighborhood.baseKrw - neighborhood.nearestCheaper.krw)}원 차이 —
+        한국의 자리는 위쪽으로만 붙어 있습니다.
+      </p>
+
+      <h3 class="${H3}">"한 단계 위 나라"가 조금 비싼 게 아닙니다</h3>
+      <p class="${P}">
+        순위상 바로 옆 나라와의 가격 차이가 10%를 넘는 지점이 ${bigGaps.length}군데 있습니다.
+        가장 큰 계단은 ${bigGaps[0].from}(${formatKrw(bigGaps[0].fromKrw)}) → ${bigGaps[0].to}(${formatKrw(bigGaps[0].toKrw)}) ${pct1(bigGaps[0].percent)},
+        그다음이 ${bigGaps[1].from}(${formatKrw(bigGaps[1].fromKrw)}) → ${bigGaps[1].to}(${formatKrw(bigGaps[1].toKrw)}) ${pct1(bigGaps[1].percent)}입니다.
+        한국보다 비싼 쪽에서 가장 큰 계단은 ${upperBig.from} → ${upperBig.to} ${pct1(upperBig.percent)}입니다.
+        표에서 한 칸 위로 올라가는 비용은 자리에 따라 이렇게 다릅니다.
+      </p>
+
+      <h3 class="${H3}">대륙 평균은 무엇을 가립니까</h3>
+      <p class="${P}">
+        ${getContinentLabel(africa.continent)} ${africa.count}개국의 평균은 ${formatKrw(africa.mean)}인데 중앙값은 ${formatKrw(africa.median)}입니다.
+        평균이 중앙값의 ${pct1(africa.meanOverMedian * 100)}밖에 안 됩니다 —
+        ${africa.cheapest}(${formatKrw(africa.min)})처럼 아주 싼 나라가 평균을 끌어내렸기 때문입니다.
+        반대로 ${getContinentLabel(northAmerica.continent)}는 평균 ${formatKrw(northAmerica.mean)}이 중앙값 ${formatKrw(northAmerica.median)}의 ${pct1(northAmerica.meanOverMedian * 100)}입니다.
+        대륙 평균만 보면 ${getContinentLabel(africa.continent)}는 실제보다 싸 보이고 ${getContinentLabel(northAmerica.continent)}는 비싸 보입니다.
+      </p>
+
+      <h3 class="${H3}">대륙을 알아도 가격대는 거의 좁혀지지 않습니다</h3>
+      <p class="${P}">
+        ${getContinentLabel(europe.continent)} ${europe.count}개국 안의 격차는 ${europe.spread}배(${europe.cheapest} ${formatKrw(europe.min)} ~ ${europe.priciest} ${formatKrw(europe.max)})로,
+        ${getContinentLabel(asia.continent)} ${asia.count}개국의 ${asia.spread}배보다 큽니다.
+        전체 격차가 ${spread.spread}배인데 ${getContinentLabel(europe.continent)} 한 대륙이 그 대부분을 덮습니다.
+        "${getContinentLabel(europe.continent)}은 비싸다"는 요약이 ${europe.cheapest}에서 무너지므로,
+        대륙 필터는 가격대를 좁히는 도구가 아니라 지역을 고르는 도구로 쓰셔야 합니다.
+      </p>
+
+      <h3 class="${H3}">패밀리가 개인의 정확히 두 배인 나라는 한 곳도 없습니다</h3>
+      <p class="${P}">
+        패밀리를 제공하는 ${family.count}개국에서 패밀리÷개인 배수를 현지 통화로 계산하면
+        ${family.min.country} ${family.min.multiple}배(${num(family.min.individualLocal)} → ${num(family.min.familyLocal)} ${family.min.currency})에서
+        ${family.max.country} ${family.max.multiple}배(${num(family.max.individualLocal)} → ${num(family.max.familyLocal)} ${family.max.currency})까지 흩어집니다.
+        정확히 2.000배인 나라는 ${family.exactlyTwo}곳이고, 2보다 작은 나라가 ${family.underTwo}곳, 큰 나라가 ${family.overTwo}곳입니다.
+      </p>
+      <p class="${P}">
+        이 배수를 원화 환산값으로 재면 안 됩니다.
+        예를 들어 ${josa(indiaLike.country, "은", "는")} 현지 통화로 ${num(indiaLike.individualLocal)} → ${num(indiaLike.familyLocal)} ${indiaLike.currency}, 배수 ${indiaLike.multiple}입니다.
+        같은 값을 원화로 옮기면 ${formatKrw(indiaKrw.individual)} → ${formatKrw(indiaKrw.family)}, 정확히 두 배로 보입니다.
+        반올림이 만든 착시입니다.
+      </p>
+
+      <h3 class="${H3}">"둘이 나눠 쓰면 이득"이 참인 나라는 ${family.breakEvenTwo}곳입니다</h3>
+      <p class="${P}">
+        패밀리가 개인 요금 N개분보다 싸지려면 N이 배수보다 커야 합니다.
+        배수가 2 미만인 ${family.breakEvenTwo}개국에서는 2명부터 패밀리가 유리하고,
+        2를 넘는 ${family.breakEvenThree}개국에서는 3명이 모여야 유리해집니다.
+        같은 서비스인데 "둘이 나눠 쓰면 이득"이라는 조언의 참·거짓이 나라에 따라 갈립니다.
+      </p>
+
+      <h3 class="${H3}">개인 순위와 패밀리 순위가 뒤집히는 조합이 ${reversalsAll.count}쌍</h3>
+      <p class="${P}">
+        개인 요금은 A가 싼데 패밀리는 A가 비싼 조합을 전수로 세면 ${reversalsAll.count}쌍입니다.
+        ${josa(topReversal.a.country, "은", "는")} 개인 ${formatKrw(topReversal.a.individual)}로 ${topReversal.b.country} ${formatKrw(topReversal.b.individual)}보다 ${num(topReversal.b.individual - topReversal.a.individual)}원 쌉니다.
+        그런데 패밀리는 ${topReversal.a.country} ${formatKrw(topReversal.a.family)}, ${topReversal.b.country} ${formatKrw(topReversal.b.family)}로 ${num(topReversal.a.family - topReversal.b.family)}원 비쌉니다.
+        ${josa(secondReversal.a.country, "과", "와")} ${secondReversal.b.country}도 개인은 ${formatKrw(secondReversal.a.individual)} 대 ${formatKrw(secondReversal.b.individual)}인데
+        패밀리에서는 ${formatKrw(secondReversal.a.family)} 대 ${formatKrw(secondReversal.b.family)}로 뒤집힙니다.
+        개인 플랜 순위표를 보고 패밀리를 고르면 틀릴 수 있습니다.
+      </p>
+
+      <h3 class="${H3}">환율을 완전히 지워도 역전은 남습니다</h3>
+      <p class="${P}">
+        유로를 쓰는 ${eurozone.members.length}개국은 통화가 같아 환산 효과가 0인 구간입니다.
+        개인 요금은 ${eurozone.individualGroups.map((g) => `${g.countries.join("·")} ${g.price}유로`).join(", ")}로 갈리고,
+        패밀리는 ${eurozone.familyGroups.map((g) => `${g.countries.join("·")} ${g.price}유로`).join(", ")}로 갈립니다.
+        개인이 싼 ${eurozone.cheapGroup.map((m) => m.country).join("·")}가 패밀리에서는 더 비쌉니다.
+        환율도 반올림도 개입하지 않은 상태에서 순위가 뒤집히므로,
+        앞의 ${reversalsAll.count}쌍은 환산 탓이 아니라 가격 정책 자체에서 나온다고 봐야 합니다.
+      </p>
+
+      <h3 class="${H3}">${heads4.heads}명이 나누면 ${heads4.passing}개국 전부가 한국보다 싸고, ${heads3.heads}명이면 무너집니다</h3>
+      <p class="${P}">
+        패밀리 요금을 ${heads4.heads}명이 똑같이 나눈다고 하면, 패밀리를 제공하는 ${split.total}개국 전부에서
+        1인당 부담이 한국 개인 요금 ${formatKrw(split.baseKrw)}보다 낮습니다.
+        가장 비싼 ${heads4.worst.country}조차 ${num(heads4.worst.family)} ÷ ${heads4.heads} = ${formatKrw(heads4.worstPerHead)}입니다.
+        그런데 ${heads3.heads}명으로 내리면 ${split.total}개국 중 ${heads3.passing}개국으로 줄어듭니다 —
+        ${heads3.failing.join(" · ")}가 한국 위로 올라갑니다.
+        "패밀리를 나누면 어디든 이득"은 ${heads4.heads}명까지만 참입니다.
+      </p>
+      <div class="${INFO}">
+        위 계산은 한 가구 안에서 요금을 나눌 때의 산술입니다.
+        패밀리 요금제는 약관상 같은 가구 구성원만 이용할 수 있고, 인원 한도도 서비스 약관을 따릅니다.
+        모르는 사람과 나누는 용도로 계산한 값이 아닙니다.
+      </div>
+
+      <h3 class="${H3}">요금제를 바꾸면 나라 사이 격차가 거의 사라집니다</h3>
+      <p class="${P}">
+        개인 요금만 보면 ${liteOutlier.country}(${formatKrw(liteOutlier.individual)})는 한국(${formatKrw(liteBase.individual)})의 ${(liteOutlier.individual / liteBase.individual).toFixed(2)}배입니다.
+        그런데 두 나라가 모두 제공하는 라이트로 비교하면 ${liteOutlier.country} ${formatKrw(liteOutlier.lite)} 대 한국 ${formatKrw(liteBase.lite)}, 배수는 ${(liteOutlier.lite / liteBase.lite).toFixed(2)}입니다.
+        ${liteOutlier.country}의 라이트÷개인 비율이 ${pct1(liteOutlier.ratio * 100)}로 낮은 반면,
+        라이트를 제공하는 나머지 ${liteRest.length}개국은 ${pct1(Math.min(...liteRest.map((m) => m.ratio)) * 100)}~${pct1(Math.max(...liteRest.map((m) => m.ratio)) * 100)}에 몰려 있기 때문입니다.
+        "${josa(liteOutlier.country, "은", "는")} 비싸다"는 판단이 요금제를 바꾸는 순간 거의 사라집니다.
+      </p>
+
+      <h3 class="${H3}">듀오는 ${duo.length}개국뿐이고 전부 2인분의 4분의 3 언저리입니다</h3>
+      <p class="${P}">
+        2인용인 듀오 요금이 있는 나라는 ${duo.map((x) => x.country).join(" · ")} ${duo.length}곳입니다.
+        개인 요금 2개분 대비 ${duo.map((x) => `${x.country} ${pct1(x.vsTwoSolo * 100)}`).join(" · ")}로
+        네 나라가 모두 4분의 3 근처에 모여 있습니다.
+        그런데 같은 나라들의 듀오÷패밀리는 ${pct1(Math.min(...duoVsFamily) * 100)}~${pct1(Math.max(...duoVsFamily) * 100)}로 훨씬 넓게 흩어집니다 —
+        듀오 가격은 개인 요금에 붙어 움직이고 패밀리 가격은 따로 움직인다는 뜻입니다.
+      </p>
+
+`;
+}
+
+/** 트렌드: 환산과 환율이 순위에 미치는 영향 — 순위가 얼마나 견고한가. */
+function buildTrendsFxSection() {
+  const data = loadData();
+  const fx = D.fxRankThresholds(data);
+  const invariance = D.orderingInvariance(data);
+  const collisions = D.numeralCollisions(data);
+  const ties = D.krwTies(data);
+  const gapDays = D.surveyDateGapDays(data);
+  const neighborhood = D.baseNeighborhood(data);
+  const foreignCount = data.prices.length - 1;
+
+  const down = fx.crossings.filter((c) => c.deltaPercent < 0);
+  const up = fx.crossings.filter((c) => c.deltaPercent > 0);
+  const nearestDown = down[down.length - 1];
+  const nearestUp = up[0];
+  const deadZoneStart = down[down.length - 3];
+  const deadZoneEnd = down[down.length - 4];
+  const audit = D.conversionAudit(_rawPriceSeed);
+  const roundTrip = audit.roundTrip.find((r) => r.planId === "individual") || audit.roundTrip[0];
+  const magnitude = D.numeralMagnitudeContrast(data);
+  const span = D.fxRankScenarios(data, [-20, 20]);
+  const spanLow = span[0];
+  const spanHigh = span[1];
+  const tightest = collisions[collisions.length - 1];
+  const widest = collisions[0];
+  const midCollision = collisions.find(
+    (c) => c !== tightest && c !== widest && c.entries.length > 2
+  );
+
+  const thresholdRows = fx.within20
+    .map(
+      (c) => `<tr>
+          <td class="${TD}">${c.country}</td>
+          <td class="${TD}">${num(c.rateNeeded)}원</td>
+          <td class="${TD}"><strong class="${c.deltaPercent < 0 ? "sp-down" : "sp-up"}">${c.deltaPercent > 0 ? "+" : ""}${c.deltaPercent}%</strong></td>
+          <td class="${TD}">${c.rankAfter}위</td>
+        </tr>`
+    )
+    .join("");
+
+  return `      <h2 class="${H2}">환율이 이 순위를 얼마나 흔드는가</h2>
+      <div class="${INFO}">
+        <strong>가정 시나리오입니다</strong> — 아래는 "환율이 다른 값이었다면 이 표의 순위가 어떻게 달라졌을까"를
+        계산한 결과이지, 환율이 실제로 그렇게 움직였다는 관측이 아닙니다.
+        요금 조사는 여전히 1회분(${data.lastUpdated} 기준 ${data.prices.length}개국)뿐이며,
+        아래 어떤 문장도 특정 국가의 요금이 바뀌었다고 말하지 않습니다.
+      </div>
+
+      <h3 class="${H3}">이 표에서 "환율"은 두 층입니다</h3>
+      <p class="${P}">
+        원화 값이 나오기까지 환율이 두 번 개입합니다.
+        ① <strong>각국 통화 → 달러</strong> — 통화마다 다른 값이고, 표의 달러 환산가 안에 이미 굳어 있습니다.
+        ② <strong>달러 → 원</strong> — ${foreignCount}개국 전부에 똑같이 곱해지는 배수 하나(1 ${data.baseCurrency} = ${numExact(data.krwRate)}원)입니다.
+        아래에서 "환율이 움직인다"고 할 때는 ②만 가리킵니다.
+        ①이 움직이면 순위는 당연히 바뀝니다. 다만 이 표는 통화별 대달러 환율을 따로 들고 있지 않아,
+        그 변화는 다음 요금 조사에서 달러 환산가가 통째로 갱신될 때 한꺼번에 반영됩니다.
+      </p>
+
+      <h3 class="${H3}">②만 움직이면 외국끼리의 순서는 바뀌지 않습니다</h3>
+      <p class="${P}">
+        원화 값은 외국 ${foreignCount}개국 전부가 같은 배수를 곱한 결과입니다.
+        모두에게 같은 양수를 곱하면 대소 관계가 보존되므로, 환율이 얼마나 움직이든 외국끼리의 순위는 한 자리도 바뀌지 않습니다.
+        위의 "저렴한 국가 상위 10위" 명단은 환율에 대해 그대로입니다.
+        실제로 원화로 정렬한 순서와 달러로 정렬한 순서를 ${data.prices.length}개국 전부에서 맞춰 보면 어긋나는 자리가 ${invariance.mismatchCount}건입니다 —
+        화면의 통화 토글은 표시 단위만 바꿀 뿐 순위를 바꾸지 않습니다.
+        아래 시나리오는 전부 ② 하나만 움직였을 때의 이야기입니다.
+      </p>
+
+      <h3 class="${H3}">움직이는 것은 기준 국가의 자리 하나뿐입니다</h3>
+      <p class="${P}">
+        한국만 정가가 원화(${formatKrw(fx.baseKrw)})로 매겨져 있어 환율에 고정되어 있습니다.
+        환율이 움직이면 나머지 ${foreignCount}개국이 한꺼번에 위아래로 미끄러지고, 한국은 제자리에서 그 흐름을 스쳐 보냅니다.
+        그래서 "환율이 순위에 미치는 영향"은 사실상 "한국이 몇 번째 자리에 놓이는가" 하나의 문제로 줄어듭니다.
+      </p>
+
+      <h3 class="${H3}">그 자리는 한쪽으로만 예민합니다 — ${fx.asymmetryRatio}배 비대칭</h3>
+      <p class="${P}">
+        지금 한국은 싼 순 ${neighborhood.rankAsc}위입니다.
+        환율이 ${Math.abs(nearestDown.deltaPercent)}%만 내려가도(${numExact(fx.rate)}원 → ${num(nearestDown.rateNeeded)}원)
+        ${nearestDown.country}(${formatKrw(nearestDown.krw)})가 한국보다 싸져 ${nearestDown.rankAfter}위로 밀립니다.
+        반대로 한 계단 올라가려면 ${nearestUp.country}(${formatKrw(nearestUp.krw)})를 추월해야 하는데 ${nearestUp.deltaPercent}% 상승이 필요합니다.
+        같은 "한 계단"인데 필요한 환율 변화량이 ${fx.asymmetryRatio}배 차이 납니다.
+        한국이 자기 가격대 군집의 바닥에 붙어 있기 때문입니다.
+      </p>
+
+      <h3 class="${H3}">그다음에는 순위가 멈춰 있는 구간이 나옵니다</h3>
+      <p class="${P}">
+        원화가 계속 강해진다고 가정하면 ${josa(down[down.length - 2].country, "이", "가")} ${Math.abs(down[down.length - 2].deltaPercent)}%에서,
+        ${josa(deadZoneStart.country, "이", "가")} ${Math.abs(deadZoneStart.deltaPercent)}%에서 한국을 앞지릅니다. 여기까지가 ${deadZoneStart.rankAfter}위입니다.
+        그런데 다음 한 계단(${deadZoneEnd.country})까지는 ${Math.abs(deadZoneEnd.deltaPercent)}%가 필요합니다.
+        즉 ${Math.abs(deadZoneStart.deltaPercent)}%와 ${Math.abs(deadZoneEnd.deltaPercent)}% 사이
+        약 ${(Math.abs(deadZoneEnd.deltaPercent) - Math.abs(deadZoneStart.deltaPercent)).toFixed(1)}%p 구간에서는
+        환율이 아무리 흔들려도 한국이 ${deadZoneStart.rankAfter}위에 그대로 있습니다.
+        순위표의 민감도는 구간마다 이렇게 다릅니다.
+      </p>
+
+      <h3 class="${H3}">±20% 안에서 순위가 바뀌는 지점은 ${fx.within20.length}곳</h3>
+      <div class="sp-table-scroll"><table class="${TABLE}">
+        <thead>
+          <tr>
+            <th class="${TH}">추월/피추월 국가</th>
+            <th class="${TH}">임계 환율</th>
+            <th class="${TH}">지금 대비</th>
+            <th class="${TH}">지나면 한국 순위</th>
+          </tr>
+        </thead>
+        <tbody>${thresholdRows}</tbody>
+      </table></div>
+      <p class="sp-note sp-note--tight">
+        ※ 임계 환율은 한국 정가 ${formatKrw(fx.baseKrw)}을 각국 달러 표시가로 나눈 값입니다.
+        환율 예측이 아니라 "지금 순위가 얼마나 견고한가"를 재는 눈금입니다.
+      </p>
+      <p class="${P}">
+        40%p 폭 안에서 순위가 바뀌는 사건은 ${fx.within20.length}번뿐이고, 그 ${fx.within20.length}번 모두 한국이 당사자입니다.
+        나머지 ${foreignCount}개국은 서로의 자리를 한 번도 바꾸지 않습니다.
+      </p>
+      <p class="${P}">
+        정리하면, 환율이 지금보다 ${Math.abs(spanLow.percent)}% 낮았다면 한국은 ${spanLow.rank}위,
+        ${spanHigh.percent}% 높았다면 ${spanHigh.rank}위였을 것입니다.
+        ±${Math.abs(spanLow.percent)}%라는 큰 폭을 다 써도 한국이 놓일 수 있는 자리는 ${Math.min(spanHigh.rank, spanLow.rank)}위에서 ${Math.max(spanHigh.rank, spanLow.rank)}위까지 ${Math.abs(spanLow.rank - spanHigh.rank) + 1}칸이고,
+        외국끼리 자리를 바꾸는 횟수는 그동안에도 0번입니다.
+        이 순위표에서 환율이 할 수 있는 일의 전부가 이 두 숫자입니다.
+      </p>
+
+      <h3 class="${H3}">표시된 숫자가 같다는 사실은 아무것도 말해주지 않습니다</h3>
+      <p class="${P}">
+        현지 정가 표시가 ${tightest.numeral}인 나라가 둘 있습니다 —
+        ${tightest.entries.map((e) => `${e.country}(${e.currency})`).join(", ")}. 원화로는
+        ${tightest.entries.map((e) => formatKrw(e.krw)).join(" 대 ")}, ${tightest.spread}배 차이입니다.
+        표시가가 ${widest.numeral}인 나라도 둘 있습니다 —
+        ${widest.entries.map((e) => `${e.country}(${e.currency})`).join(", ")}. 이쪽은 원화로
+        ${widest.entries.map((e) => formatKrw(e.krw)).join(" 대 ")}, ${widest.spread}배 차이입니다.
+        ${midCollision ? `표시가 ${josa(midCollision.numeral, "은", "는")} ${midCollision.entries.length}개국·${new Set(midCollision.entries.map((e) => e.currency)).size}개 통화에 걸쳐 나타나며 ${formatKrw(Math.min(...midCollision.entries.map((e) => e.krw)))}부터 ${formatKrw(Math.max(...midCollision.entries.map((e) => e.krw)))}까지 ${midCollision.spread}배로 벌어집니다.` : ""}
+        같은 숫자가 ${tightest.spread}배 차이도 되고 ${widest.spread}배 차이도 되므로,
+        표시가만 보고 나라를 고르는 판단은 성립하지 않습니다.
+      </p>
+      <p class="${P}">
+        크기 순서도 마찬가지입니다. 현지 표시가를 숫자 크기로만 줄 세우면 맨 앞은
+        ${magnitude.smallest.map((r) => `${r.country}(${r.local} ${r.currency})`).join(" · ")}인데,
+        원화 순위로는 ${magnitude.total}개국 중 ${magnitude.smallest.map((r) => `${r.rank}위`).join(" · ")}입니다 — 비싼 쪽입니다.
+        맨 뒤는 ${magnitude.largest.country}(${num(magnitude.largest.local)} ${magnitude.largest.currency})인데 원화 순위는 ${magnitude.largest.rank}위, 싼 쪽입니다.
+        표시가의 크기 순서와 실제 부담의 순서가 거의 반대로 놓입니다.
+      </p>
+
+      <h3 class="${H3}">원화 동률 ${ties.tiedCountries}개국은 전부 진짜 동률입니다</h3>
+      <p class="${P}">
+        원화 환산값이 같은 나라 묶음이 ${ties.ties.length}개 있습니다 —
+        ${ties.ties.map((t) => `${formatKrw(t.krw)} ${t.members.map((m) => m.country).join("·")}`).join(", ")}.
+        ${ties.ties.every((t) => t.genuine) ? `${ties.ties.length}개 묶음 모두 현지 정가 자체가 같은 금액(${ties.ties.map((t) => `${t.members[0].local} ${t.members[0].currency}`).join(", ")})이라 진짜 동률입니다.` : "일부는 현지 정가가 다른데 같은 값으로 보입니다."}
+        달러값을 소수 둘째 자리로 반올림하는 과정 때문에 서로 다른 정가가 같은 원화 값으로 뭉친 사례는
+        개인 요금 ${data.prices.length}개국에서 ${ties.artificial}건입니다.
+        순위표의 공동 순위는 환산 해상도의 부산물이 아닙니다.
+      </p>
+
+      <h3 class="${H3}">환산 반올림 오차와 순위 경계는 같은 자릿수에 있습니다</h3>
+      <p class="${P}">
+        한국 정가를 달러로 바꿨다가 되돌리면 ${num(roundTrip.local)}원이 ${num(roundTrip.derived)}원이 됩니다.
+        ${num(Math.abs(roundTrip.local - roundTrip.derived))}원, ${pct2((Math.abs(roundTrip.local - roundTrip.derived) / roundTrip.local) * 100)}의 오차입니다.
+        그런데 바로 위 칸인 ${nearestDown.country}와의 간격은 ${num(nearestDown.krw - fx.baseKrw)}원뿐이라,
+        왕복 오차가 순위 경계 간격의 ${pct1((Math.abs(roundTrip.local - roundTrip.derived) / (nearestDown.krw - fx.baseKrw)) * 100)}에 해당합니다.
+        환산 해상도와 순위 경계가 같은 자릿수에 있다는 뜻입니다.
+      </p>
+      <p class="${P}">
+        다만 이 사례에서 보정 여부가 순위를 바꾸지는 않습니다.
+        보정을 걷어낸 ${num(roundTrip.derived)}원도 ${nearestDown.country} ${formatKrw(nearestDown.krw)}보다 싸서 자리는 ${neighborhood.rankAsc}위 그대로입니다.
+        그래도 이 사이트가 원화 표시 국가에 한해 현지 정가를 되돌려 쓰는 이유는,
+        간격이 ${num(nearestDown.krw - fx.baseKrw)}원인 자리에서는 다음 갱신에 순서를 뒤집을 수 있는 크기이기 때문입니다.
+      </p>
+
+      <h3 class="${H3}">두 날짜의 시차가 흔드는 것과 흔들지 못하는 것</h3>
+      <p class="${P}">
+        요금 조사일 ${data.lastUpdated}과 환율 기준일 ${data.exchangeRateDate} 사이에는 ${gapDays}일이 있습니다.
+        그 사이 환율만 달라졌다면, 위의 첫 번째 관찰에 따라 외국 ${foreignCount}개국 사이의 순위는 한 자리도 바뀌지 않고
+        한국의 자리만 움직입니다. 시차가 실제로 흔들 수 있는 것은 그 하나입니다.
+      </p>
+      <p class="${P}">
+        반대로 그 사이 어느 나라의 현지 정가가 바뀌었다면 이 데이터로는 알 수 없습니다.
+        정가 관측이 1회분뿐이라 비교 대상이 없기 때문입니다.
+        그래서 이 페이지는 변동률을 싣지 않고, 대신 "지금 순위가 얼마나 견고한가"만 위와 같이 정량화합니다.
+      </p>
+      <p class="sp-note">
+        ※ 이 절에서 말한 "민감도"는 환율에 대한 민감도이며, 각국 요금 자체의 변동과는 아무 관계가 없습니다.
+        임계 환율은 순위가 뒤집히는 지점을 재는 눈금일 뿐 환율 전망이 아닙니다.
+      </p>
+
+`;
+}
+
 function buildLandingContent() {
   const stats = computeCatalogStats();
   const data = stats.data;
@@ -749,10 +1386,11 @@ function buildLandingContent() {
         <li class="${LI}"><strong>청구 국가</strong> — 결제 수단 발행 국가와 계정 청구 주소로 정해지는 값. 접속 위치가 아니라 이 값이 가격을 결정합니다.</li>
       </ul>
 
+${buildLandingDatasetSection()}
       <h2 class="${H2}">어디부터 보면 되나요</h2>
       <ul class="${UL}">
         <li class="${LI}"><a href="/ott/youtube-premium">전체 국가 가격 비교</a> — ${stats.pricedCount}개국 순위표와 정렬·필터</li>
-        <li class="${LI}"><a href="/ott/youtube-premium/trends">가격 변동 트렌드</a> — 최근 인상·인하 국가와 변동 폭</li>
+        <li class="${LI}"><a href="/ott/youtube-premium/trends">국가 간 가격 격차</a> — 환율이 순위를 얼마나 흔드는지까지</li>
         <li class="${LI}"><a href="/ott/youtube-premium/kr">한국 가격 상세</a> — 기준 국가의 요금제별 표시가</li>
         <li class="${LI}"><a href="/ott/about">서비스 소개와 데이터 출처</a> — 수집·검증 절차</li>
       </ul>
@@ -780,6 +1418,7 @@ function buildHomeContent() {
   const kr = data.prices.find((p) => p.countryCode === "KR");
   const krKrw = kr?.plans?.individual?.monthly ?? kr?.converted?.individual?.krw ?? null;
 
+  const planCounts = D.planCoverage(data).counts;
   const top20 = prices.slice(0, 20);
   const rowsHtml = top20
     .map(
@@ -805,15 +1444,15 @@ function buildHomeContent() {
 
       <p class="${P}">
         전 세계 <strong>${prices.length}개 국가</strong>의 유튜브 프리미엄(YouTube Premium) 개인 플랜 가격을 한눈에 비교하는 서비스입니다.
-        한국은 현재 월 <strong>${formatKrw(krKrw)}</strong>(부가세 포함)이지만, 국가에 따라
-        <strong class="sp-down">월 2천원대</strong>부터 이용할 수 있습니다.
+        한국은 현재 월 <strong>${formatKrw(krKrw)}</strong>(부가세 포함)이지만, 이 표에서 가장 낮은 나라는
+        <strong class="sp-down">${prices[0].country} ${formatKrw(prices[0].krw)}</strong>입니다.
         각 국가의 가격 차이, 한국 대비 절약률을 환율 기준일(${data.exchangeRateDate}) 시점의 환율로 환산해 제공합니다.
       </p>
 
       <p class="${P}">
         유튜브 프리미엄은 광고 제거·백그라운드 재생·오프라인 저장·YouTube Music Premium까지 포함한 종합 구독 서비스입니다.
         같은 기능·같은 품질이지만 Google이 국가별 구매력·물가·세금·현지 경쟁 환경을 반영해 가격을 차등 책정하고 있어,
-        거주 국가에 따라 실제 부담하는 비용이 최대 <strong>8배 이상</strong> 차이가 납니다.
+        거주 국가에 따라 실제 부담하는 비용이 이 표 안에서만 <strong>${(prices[prices.length - 1].krw / prices[0].krw).toFixed(1)}배</strong> 차이가 납니다.
       </p>
 
       <h2 class="${H2}">가장 저렴한 국가 TOP 20</h2>
@@ -837,8 +1476,9 @@ function buildHomeContent() {
       html: `      <h2 class="${H2}">왜 국가별 가격이 다를까요?</h2>
       <p class="${P}">
         유튜브 프리미엄은 국가별로 구매력 평가(PPP), 부가세율, 환율, 경쟁 서비스 가격을 종합해 차등 가격 정책을 운영합니다.
-        예를 들어 인도는 월 2,374원, 튀르키예는 2,635원으로 한국 가격의 15~20% 수준입니다.
-        반면 미국·영국·호주 등 선진국은 오히려 한국보다 비싼 경우가 많습니다.
+        예를 들어 ${prices[1].country}는 월 ${formatKrw(prices[1].krw)}, ${prices[2].country}는 ${formatKrw(prices[2].krw)}로
+        한국 가격의 ${Math.round((prices[1].krw / krKrw) * 100)}~${Math.round((prices[2].krw / krKrw) * 100)}% 수준입니다.
+        반면 표 안의 ${prices.filter((p) => p.krw > krKrw).length}개국은 한국보다 비쌉니다.
       </p>
       <ul class="${UL}">
         <li class="${LI}"><strong>구매력 평가(PPP)</strong>: 현지 평균 소득에 비례한 가격 책정</li>
@@ -852,10 +1492,10 @@ function buildHomeContent() {
       <ul class="${UL}">
         <!-- 시점 주장 금지. 정가는 자동 수집 수단이 없어 사람이 조사하므로 "실시간"·"최신"은
              거짓이 된다. 기능은 그대로 두고 근거 날짜(요금 조사일·환율 기준일)에 기댄다. -->
-        <li class="${LI}"><strong>44개 국가 요금 한눈에 비교</strong> — 각 국가에서 실제로 제공되는 개인·가족·학생·Lite 플랜 가격을 같은 시점(요금 조사일 ${data.lastUpdated}) 기준으로 비교</li>
+        <li class="${LI}"><strong>${prices.length}개 국가 요금 한눈에 비교</strong> — 각 국가에서 실제로 제공되는 요금제만 같은 시점(요금 조사일 ${data.lastUpdated}) 기준으로 비교 (개인 ${planCounts.individual}개국 · 패밀리 ${planCounts.family}개국 · 라이트 ${planCounts.lite}개국 · 듀오 ${planCounts.duo}개국)</li>
         <li class="${LI}"><strong>원화 자동 환산</strong> — 환율 기준일 ${data.exchangeRateDate}의 공개 환율로 원화 비용 확인</li>
         <li class="${LI}"><strong>절약률 계산</strong> — 한국 대비 월·연 절약액 자동 계산</li>
-        <li class="${LI}"><strong>가격 트렌드</strong> — 국가별 가격 변동 추이 (<a href="/ott/youtube-premium/trends">트렌드 페이지</a>)</li>
+        <li class="${LI}"><strong>국가 간 가격 격차</strong> — 환율이 순위를 얼마나 흔드는지까지 (<a href="/ott/youtube-premium/trends">격차 분석 페이지</a>)</li>
         <li class="${LI}"><strong>이용 가이드</strong> — 국가별 결제·계정 설정 주의사항</li>
         <li class="${LI}"><strong>법적 주의사항 안내</strong> — 약관 위반 위험과 합법 이용 범위</li>
       </ul>
@@ -869,6 +1509,11 @@ function buildHomeContent() {
       </div>
 
 `,
+    },
+    {
+      id: "home-structure",
+      live: false,
+      html: buildHomeStructureSection(),
     },
     // 뷰의 ServiceSEOSection FAQ 아코디언과 같은 내용
     {
@@ -884,8 +1529,8 @@ function buildHomeContent() {
       live: false,
       html: `      <h2 class="${H2}">관련 페이지</h2>
       <ul class="${UL}">
-        <li class="${LI}"><a href="/ott/youtube-premium/trends">가격 변동 트렌드 분석</a></li>
-        <li class="${LI}"><a href="/ott/youtube-premium/in">인도 — 세계 최저가</a></li>
+        <li class="${LI}"><a href="/ott/youtube-premium/trends">국가 간 가격 격차와 환율 민감도</a></li>
+        <li class="${LI}"><a href="/ott/youtube-premium/${prices[0].countryCode.toLowerCase()}">${prices[0].country} — 이 표의 최저가</a></li>
         <li class="${LI}"><a href="/ott/youtube-premium/kr">한국 가격 상세</a></li>
         <li class="${LI}"><a href="/ott/about">서비스 소개 및 데이터 출처</a></li>
       </ul>
@@ -1078,6 +1723,11 @@ ${
       </p>
 
 `,
+    },
+    {
+      id: "trends-fx",
+      live: false,
+      html: buildTrendsFxSection(),
     },
     {
       id: "trends-continent",
